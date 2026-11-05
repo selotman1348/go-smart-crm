@@ -1,0 +1,6 @@
+-- Seed data loaded by `supabase db reset` (local stack and CI only).
+--
+-- Iteration 0 has no application tables yet; the schema starts in iteration 1.
+-- Internal users are Supabase Auth users and are created through the admin API
+-- by `npm run db:seed` (scripts/seed.ts), which works for both the local stack
+-- and the hosted project.

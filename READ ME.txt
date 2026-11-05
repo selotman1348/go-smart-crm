@@ -1,0 +1,22 @@
+I’ve added the prompts to the starter pack as seven saved commands in a new .claude/commands/ folder. CLAUDE.md and the three documents are exactly as before; nothing else needed to change.
+
+Command	What it runs
+/iteration-0	Project setup
+/iteration-1	Data model and master data
+/iteration-2	Case management
+/iteration-3	Quotes and assessment
+/iteration-4	Communication and e-mail intake
+/iteration-5	Invoicing, dashboard and phase-2 hooks
+/review	Checks every use case and business rule, lists gaps, and writes the end-to-end test for the demo script
+
+Each command names its build stage and lists that stage’s scope with the correct use case numbers. It tells Claude Code to read the documents, propose a plan and wait for your approval before writing any code. When the stage is done, it checks the result against the definition of done.
+
+How to use them in VS Code
+
+Unzip the pack into your empty project folder. The .claude folder starts with a dot, so it may be hidden in Finder or Explorer; it’s still there.
+Open the folder in VS Code, then open the Claude Code panel.
+Type /iteration-0 and send it. Your commands should show in the list as you type.
+Review the plan Claude Code proposes, approve it, let it build, then commit your changes.
+Start a new session and run the next command, one per session.
+
+If you add anything after a command (for example /iteration-2 keep the UI simple), Claude Code treats it as an extra instruction.

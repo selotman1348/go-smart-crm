@@ -64,8 +64,14 @@ test.beforeEach(async ({ page }) => {
   await signIn(page);
 });
 
+/**
+ * Opens a case tab and waits until the navigation has finished: until then
+ * the previous tab is still on screen, with fields of the same name.
+ */
 async function openTab(page: Page, name: string) {
-  await page.getByRole("navigation", { name: "Case sections" }).getByRole("link", { name, exact: true }).click();
+  const tab = page.getByRole("navigation", { name: "Case sections" }).getByRole("link", { name, exact: true });
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-current", "page");
 }
 
 test("searches and filters the seeded cases", async ({ page }) => {
@@ -146,7 +152,7 @@ test("creates a case, completes it, changes its status and shows the history", a
 
   // Damage tab (UC-12).
   await openTab(page, "Damage");
-  await page.getByLabel("Damage date").filter({ visible: true }).fill("2026-11-03");
+  await page.getByLabel("Damage date").fill("2026-11-03");
   await page.getByRole("combobox", { name: "Circumstances" }).selectOption({ label: "Parking damage" });
   await page.getByRole("textbox", { name: "Cause" }).fill("Bumper scraped in a car park.");
   await page.getByRole("checkbox", { name: "Front bumper" }).check();
@@ -155,16 +161,22 @@ test("creates a case, completes it, changes its status and shows the history", a
 
   // Documents tab (UC-36): upload, download, remove.
   await openTab(page, "Documents");
-  await page.getByRole("combobox", { name: "Category" }).selectOption({ label: "Claim form" });
-  await page.getByLabel("Files").filter({ visible: true }).setInputFiles({
+  const upload = page.getByRole("form", { name: "Upload documents" });
+  await upload.getByRole("combobox", { name: "Category" }).selectOption({ label: "Claim form" });
+  await upload.getByLabel("Files").setInputFiles({
     name: "e2e-claim.pdf",
     mimeType: "application/pdf",
     buffer: Buffer.from("%PDF-1.4\n% e2e test file\n"),
   });
-  await page.getByRole("button", { name: "Upload" }).click();
-  // The lasting outcome: the file is listed with its category.
+  await upload.getByRole("button", { name: "Upload" }).click();
+  // The lasting outcome: the file is listed with its category. An upload
+  // error is reported with its message.
   const link = page.getByRole("link", { name: "e2e-claim.pdf" });
-  await expect(link).toBeVisible();
+  const uploadError = upload.getByRole("alert");
+  await expect(link.or(uploadError)).toBeVisible({ timeout: 30_000 });
+  if (await uploadError.isVisible()) {
+    throw new Error(`Upload failed: ${await uploadError.textContent()}`);
+  }
   await expect(page.getByRole("row", { name: /e2e-claim\.pdf Claim form/ })).toBeVisible();
   const download = await page.request.get((await link.getAttribute("href"))!);
   expect(download.ok()).toBe(true);

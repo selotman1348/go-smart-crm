@@ -89,6 +89,7 @@ export function DocumentUpload({
 
   return (
     <form
+      aria-label={label}
       className="grid gap-3 rounded-lg border p-4"
       onSubmit={(event) => {
         event.preventDefault();

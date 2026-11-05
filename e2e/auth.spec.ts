@@ -1,22 +1,9 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-// UC-01 Log in. Uses a user created by `npm run db:seed`.
-const email = process.env.E2E_USER_EMAIL ?? "";
-const password = process.env.SEED_USER_PASSWORD ?? "";
+import { E2E_EMAIL, E2E_PASSWORD, fillLogin, requireCredentials } from "./helpers";
 
-test.beforeAll(() => {
-  if (!email || !password) {
-    throw new Error(
-      "Set E2E_USER_EMAIL and SEED_USER_PASSWORD (see .env.example) and run npm run db:seed.",
-    );
-  }
-});
-
-async function signIn(page: Page, withPassword: string) {
-  await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Password").fill(withPassword);
-  await page.getByRole("button", { name: "Sign in" }).click();
-}
+// UC-01 Log in.
+test.beforeAll(requireCredentials);
 
 test("sends a signed-out user to the login page", async ({ page }) => {
   await page.goto("/dashboard");
@@ -30,20 +17,20 @@ test("sends a signed-out user to the login page", async ({ page }) => {
 test("rejects a wrong password", async ({ page }) => {
   await page.goto("/login");
 
-  await signIn(page, `${password}-wrong`);
+  await fillLogin(page, `${E2E_PASSWORD}-wrong`);
 
   await expect(
     page.getByRole("alert").filter({ hasText: "Invalid e-mail or password." }),
   ).toBeVisible();
   await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByLabel("E-mail")).toHaveValue(email);
+  await expect(page.getByLabel("E-mail")).toHaveValue(E2E_EMAIL);
 });
 
 test("signs in to the dashboard and signs out again", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/login/);
 
-  await signIn(page, password);
+  await fillLogin(page);
 
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();

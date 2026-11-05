@@ -15,9 +15,10 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "ci": "npm run lint && npm run typecheck && npm run test && npm run build",
-    "db:seed": "tsx scripts/seed.ts",
-    "db:link": "supabase link",
-    "db:push": "supabase db push",
+    "db:seed": "tsx scripts/seed/index.ts",
+    "db:push": "tsx scripts/supabase-remote.ts db push --yes",
+    "db:push:dry": "tsx scripts/supabase-remote.ts db push --dry-run",
+    "db:types": "tsx scripts/supabase-remote.ts --out src/lib/supabase/database.types.ts gen types --lang=typescript --schema=public",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset && npm run db:seed"

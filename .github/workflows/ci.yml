@@ -62,6 +62,15 @@ jobs:
           ' supabase-status.json >> "$GITHUB_ENV"
           rm supabase-status.json
 
+      # The committed types (npm run db:types) must match the migrations. The
+      # PostgREST version differs between hosted and local stacks, so skip it.
+      - name: Check generated database types
+        run: |
+          npx supabase gen types --lang=typescript --schema=public > "$RUNNER_TEMP/database.types.ts"
+          diff -u \
+            <(grep -v PostgrestVersion src/lib/supabase/database.types.ts) \
+            <(grep -v PostgrestVersion "$RUNNER_TEMP/database.types.ts")
+
       - run: npm run db:seed
       - run: npx playwright install --with-deps chromium
       - run: npm run build

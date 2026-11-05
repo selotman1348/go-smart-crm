@@ -23,6 +23,7 @@ Requirements: Node.js 24 or later, and a Supabase project.
 2. **Create a Supabase project** at [supabase.com](https://supabase.com/dashboard). Then, in the dashboard:
    - Go to **Authentication > Sign In / Providers** and turn **off** "Allow new users to sign up". Only internal users sign in, and they are created by the seed script or an admin.
    - Go to **Project Settings > API Keys** and copy the project URL, the **publishable** key and a **secret** key.
+   - Go to **Account > Access Tokens** and create a token for the Supabase CLI. If you can, limit it to this project with database read/write and projects read.
 
 3. **Configure the environment**
 
@@ -34,12 +35,14 @@ Requirements: Node.js 24 or later, and a Supabase project.
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    - `SUPABASE_SECRET_KEY`
+   - `SUPABASE_ACCESS_TOKEN`: the CLI token
    - `SEED_USER_PASSWORD`: a password you choose for the fictitious users
 
-4. **Seed the users and start the app**
+4. **Create the schema, load the seed and start the app**
 
    ```sh
-   npm run db:seed   # creates alex.morgan@gosmart.example and sam.taylor@gosmart.example
+   npm run db:push   # applies supabase/migrations to the hosted project
+   npm run db:seed   # fictitious users, accounts, contacts, vehicles and 10 cases
    npm run dev
    ```
 
@@ -56,21 +59,42 @@ Requirements: Node.js 24 or later, and a Supabase project.
 | `npm test` | Unit tests (Vitest) |
 | `npm run test:e2e` | End-to-end tests (Playwright). They start `npm run dev` unless a server is already running |
 | `npm run ci` | Lint, typecheck, unit tests and build |
-| `npm run db:seed` | Create the fictitious users. Safe to repeat |
-| `npm run db:link` / `npm run db:push` | Link the hosted project and apply `supabase/migrations` to it. Run `npx supabase login` first |
+| `npm run db:push` / `db:push:dry` | Apply new migrations to the hosted project, or only list them |
+| `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the hosted schema. Commit the result; CI checks it matches the migrations |
+| `npm run db:seed` | Load the seed data. Safe to repeat: existing rows are never overwritten |
 | `npm run db:start` / `db:stop` / `db:reset` | Optional local Supabase stack (needs Docker). CI uses it to test on a fresh database |
+
+### Changing the schema
+
+1. Add a new file to `supabase/migrations/`, named `<timestamp>_<description>.sql`. Never edit a migration that has already been applied.
+2. Run `npm run db:push:dry`, then `npm run db:push`.
+3. Run `npm run db:types` and commit the migration together with the types.
+
+## Seed data
+
+All seed data is fictitious (`scripts/seed/data.ts`). It uses Belgian formats with unissued plates (`9-xxx-000`), VAT numbers with wrong check digits, `000` phone numbers and `.example` e-mail addresses. It contains:
+
+- **Users:** `alex.morgan`, `sam.taylor` and `lena.janssens` (all `@gosmart.example`), with the password from `SEED_USER_PASSWORD`.
+- **18 accounts:**
+  - a group of companies: Velora Mobility Group, with Velora Car Rental (VCR, requires VDA/PO) and Velora Fleet Services (VFS)
+  - the demo client Demo Fleet (DEM)
+  - brokers, insurers, experts, leasing companies, a supplier and a third party
+  - 4 repairers, 3 of them in the network with a 13% discount
+- **25 contacts** and **12 vehicles**.
+- **10 cases in 10 different statuses**, with parties, damage, quotes, assessments, invoices, tags and full status history. DEM has no 2026 case, so the demo's first case is DEM20260001.
 
 ## Project layout
 
 ```
 src/
   app/            Routes and UI. No database access here (ESLint enforces it)
-  components/ui/  shadcn/ui components
-  domain/         Business rules, repositories and services (auth for now)
-  lib/            Supabase client factories and environment settings
+  components/     Shared UI; components/ui/ holds the shadcn/ui components
+  domain/         Business rules, repositories and services (auth, accounts, contacts, cases)
+  lib/            Supabase client factories, generated database types, environment settings
   proxy.ts        Refreshes the session and redirects signed-out users
-supabase/         Supabase CLI config, migrations and seed.sql
-scripts/seed.ts   Creates the seed users through the Supabase admin API
+supabase/         Supabase CLI config and migrations
+scripts/seed/     Seed data and loader
+scripts/supabase-remote.ts   Runs CLI commands against the hosted project
 e2e/              Playwright tests
 ```
 

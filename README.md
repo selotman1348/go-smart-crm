@@ -60,7 +60,7 @@ Requirements: Node.js 24 or later, and a Supabase project.
 | `npm run test:e2e` | End-to-end tests (Playwright). They start `npm run dev` unless a server is already running |
 | `npm run ci` | Lint, typecheck, unit tests and build |
 | `npm run db:push` / `db:push:dry` | Apply new migrations to the hosted project, or only list them |
-| `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the hosted schema. Commit the result; CI checks it matches the migrations |
+| `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the hosted schema. Commit the result. CI typechecks the app against types generated from a fresh database |
 | `npm run db:seed` | Load the seed data. Safe to repeat: existing rows are never overwritten |
 | `npm run db:start` / `db:stop` / `db:reset` | Optional local Supabase stack (needs Docker). CI uses it to test on a fresh database |
 

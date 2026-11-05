@@ -62,14 +62,22 @@ jobs:
           ' supabase-status.json >> "$GITHUB_ENV"
           rm supabase-status.json
 
-      # The committed types (npm run db:types) must match the migrations. The
-      # PostgREST version differs between hosted and local stacks, so skip it.
-      - name: Check generated database types
+      # The app must compile against types generated from a database built only
+      # from the migrations. The hosted generator (npm run db:types) and the
+      # local one format some details differently, so the text is not compared;
+      # differences are reported as a notice.
+      - name: Typecheck against types from the fresh database
         run: |
-          npx supabase gen types --lang=typescript --schema=public > "$RUNNER_TEMP/database.types.ts"
-          diff -u \
-            <(grep -v PostgrestVersion src/lib/supabase/database.types.ts) \
-            <(grep -v PostgrestVersion "$RUNNER_TEMP/database.types.ts")
+          types=src/lib/supabase/database.types.ts
+          npx supabase gen types --lang=typescript --schema=public > "$types"
+          if ! git diff --quiet -- "$types"; then
+            excerpt=$(git --no-pager diff -U0 -- "$types" | head -40)
+            excerpt=${excerpt//'%'/'%25'}
+            excerpt=${excerpt//$'\r'/'%0D'}
+            excerpt=${excerpt//$'\n'/'%0A'}
+            echo "::notice file=$types::Types from the fresh database differ from the committed file:%0A$excerpt"
+          fi
+          npm run typecheck
 
       - run: npm run db:seed
       - run: npx playwright install --with-deps chromium

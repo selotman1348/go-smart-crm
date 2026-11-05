@@ -6,12 +6,14 @@ import { usePathname } from "next/navigation";
 import type { CaseTab } from "@/domain/cases/case-warnings";
 import { cn } from "@/lib/utils";
 
-// design.md section 4. Quote, Assessment and Communications follow in iterations 3 and 4.
+// design.md section 4. Communications follows in iteration 4.
 const TABS: { tab: CaseTab; segment: string; label: string }[] = [
   { tab: "case", segment: "", label: "Case" },
   { tab: "vehicle", segment: "/vehicle", label: "Vehicle" },
   { tab: "parties", segment: "/parties", label: "Parties" },
   { tab: "damage", segment: "/damage", label: "Damage" },
+  { tab: "quote", segment: "/quote", label: "Quote" },
+  { tab: "assessment", segment: "/assessment", label: "Assessment" },
   { tab: "documents", segment: "/documents", label: "Documents" },
   { tab: "history", segment: "/history", label: "History" },
 ];

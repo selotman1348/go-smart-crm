@@ -20,5 +20,5 @@ export async function getCaseHistory(caseId: string): Promise<HistoryEntry[] | n
     return null;
   }
   const rows = await repository.auditRows(caseId, vehicleId);
-  return formatHistory(rows, await repository.nameLookups(referencedIds(rows)));
+  return formatHistory(rows, await repository.nameLookups(caseId, referencedIds(rows)));
 }

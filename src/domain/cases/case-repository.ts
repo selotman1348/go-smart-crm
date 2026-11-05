@@ -50,6 +50,10 @@ export type CaseDetail = {
   vehicle: { id: string; licencePlate: string; make: string | null; model: string | null } | null;
   header: CaseHeader;
   tagIds: string[];
+  /** UC-26/27: set when the case is closed as no repair or total loss. */
+  repairDecision: CaseRow["repair_decision"];
+  noRepairReason: string | null;
+  noRepairReasonText: string | null;
 };
 
 export type Tag = { id: string; name: string };
@@ -255,6 +259,9 @@ export function createCaseRepository(db: DbClient) {
           : null,
         header: toCaseHeader(data),
         tagIds: data.case_tag.map((row) => row.tag_id),
+        repairDecision: data.repair_decision,
+        noRepairReason: data.no_repair_reason,
+        noRepairReasonText: data.no_repair_reason_text,
       };
     },
 

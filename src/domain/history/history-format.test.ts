@@ -17,6 +17,11 @@ const names: NameLookups = {
   ]),
   tags: new Map(),
   vehicles: new Map(),
+  quotes: new Map([
+    ["q-pre", "Pre-calculation"],
+    ["q-post", "Post-calculation"],
+  ]),
+  documents: new Map([["doc-1", "expert-report.pdf"]]),
   codes: new Map([
     ["on_hold_reason", new Map([["awaiting_parts", "Awaiting parts"]])],
     ["part_catalog", new Map([["front_bumper", "Front bumper"]])],
@@ -124,5 +129,87 @@ describe("referencedIds", () => {
     expect([...ids.users].sort()).toEqual([ALEX, SAM].sort());
     expect([...ids.accounts]).toEqual([RIVERSIDE]);
     expect([...ids.contacts]).toEqual([KEVIN]);
+  });
+});
+
+describe("quote history", () => {
+  // Newest first, as the repository returns them; all rows of one save share
+  // the transaction's time.
+  const save = [
+    row({
+      entity: "quote_line",
+      entityId: "l3",
+      newValue: JSON.stringify({ quote_id: "q-pre", category: "deduction", sub_type: "wear_and_tear", description: "Wear", amount: -50 }),
+      at: "2026-11-05T09:00:00Z",
+    }),
+    row({ entity: "quote", entityId: "q-pre", field: "total_excl_vat", oldValue: "248", newValue: "198", at: "2026-11-05T09:00:00Z" }),
+    row({ entity: "quote_line", entityId: "l1", field: "amount", oldValue: "200", newValue: "248", at: "2026-11-05T09:00:00Z" }),
+    row({
+      entity: "quote_line",
+      entityId: "l2",
+      oldValue: JSON.stringify({ quote_id: "q-pre", category: "parts", sub_type: null, description: "Clip", amount: 12.5 }),
+      at: "2026-11-05T09:00:00Z",
+    }),
+  ];
+
+  it("shows one quote save as one entry with its line changes", () => {
+    expect(formatHistory(save, names)).toEqual([
+      {
+        key: expect.any(String),
+        at: "2026-11-05T09:00:00Z",
+        actor: "Alex Morgan",
+        summary: "Updated the pre-calculation",
+        changes: [
+          { label: "Line removed", from: "Parts: Clip (€12.50)", to: "—" },
+          { label: "Line amount", from: "€200.00", to: "€248.00" },
+          { label: "Total excl. VAT", from: "€248.00", to: "€198.00" },
+          { label: "Line added", from: "—", to: "Deduction – Wear and tear: Wear (-€50.00)" },
+        ],
+      },
+    ]);
+  });
+
+  it("names creating, sending and validating a quote", () => {
+    const created = formatHistory(
+      [row({ entity: "quote", entityId: "q-post", newValue: JSON.stringify({ version: "post_calculation" }) })],
+      names,
+    );
+    expect(created[0].summary).toBe("Created the post-calculation");
+    const validated = formatHistory(
+      [row({ entity: "quote", entityId: "q-post", field: "status", oldValue: "draft", newValue: "validated" })],
+      names,
+    );
+    expect(validated[0]).toMatchObject({
+      summary: "Validated the post-calculation",
+      changes: [{ label: "Status", from: "Draft", to: "Validated" }],
+    });
+    const sent = formatHistory(
+      [row({ entity: "quote", entityId: "q-pre", field: "status", oldValue: "draft", newValue: "sent" })],
+      names,
+    );
+    expect(sent[0].summary).toBe("Marked the pre-calculation as sent");
+  });
+
+  it("keeps separate saves and other records apart", () => {
+    const entries = formatHistory(
+      [
+        row({ entity: "quote", entityId: "q-pre", field: "total_excl_vat", newValue: "10", at: "2026-11-05T10:00:00Z" }),
+        row({ entity: "quote", entityId: "q-pre", field: "total_excl_vat", newValue: "5", at: "2026-11-05T09:00:00Z" }),
+        row({ entity: "assessment", field: "assessment_type", oldValue: "none", newValue: "smart_expertise", at: "2026-11-05T08:00:00Z" }),
+      ],
+      names,
+    );
+    expect(entries.map((entry) => entry.summary)).toEqual([
+      "Updated the pre-calculation",
+      "Updated the pre-calculation",
+      "Updated the assessment",
+    ]);
+    expect(entries[2].changes).toEqual([{ label: "Assessment type", from: "None", to: "Smart Expertise" }]);
+  });
+
+  it("formats assessment amounts and the expert report", () => {
+    expect(formatValue("assessment", "approved_amount_incl_vat", "1563.14", names)).toBe("€1,563.14");
+    expect(formatValue("assessment", "expert_report_document_id", "doc-1", names)).toBe("expert-report.pdf");
+    expect(formatValue("case", "deductible", "250", names)).toBe("€250.00");
   });
 });

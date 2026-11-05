@@ -2,13 +2,15 @@ import type { DbClient } from "@/lib/supabase/server";
 
 import { contactName } from "@/domain/parties/party-repository";
 
+import { QUOTE_VERSION_LABELS } from "@/domain/quotes/quote-lines";
+
 import type { AuditRow, NameLookups } from "./history-format";
 
 const LOOKUP_TABLES = ["on_hold_reason", "no_repair_reason", "liability", "circumstances", "part_catalog"] as const;
 
 export function createHistoryRepository(db: DbClient) {
   async function names<Row>(
-    table: "account" | "contact" | "app_user" | "tag" | "vehicle",
+    table: "account" | "contact" | "app_user" | "tag" | "vehicle" | "document",
     columns: string,
     ids: Set<string>,
     toName: (row: Row) => string,
@@ -61,14 +63,22 @@ export function createHistoryRepository(db: DbClient) {
       }));
     },
 
-    async nameLookups(ids: {
-      accounts: Set<string>;
-      contacts: Set<string>;
-      users: Set<string>;
-      tags: Set<string>;
-      vehicles: Set<string>;
-    }): Promise<NameLookups> {
-      const [accounts, contacts, users, tags, vehicles, ...codeLists] = await Promise.all([
+    async nameLookups(
+      caseId: string,
+      ids: {
+        accounts: Set<string>;
+        contacts: Set<string>;
+        users: Set<string>;
+        tags: Set<string>;
+        vehicles: Set<string>;
+        documents: Set<string>;
+      },
+    ): Promise<NameLookups> {
+      const quotes = await db.from("quote").select("id, version").eq("case_id", caseId);
+      if (quotes.error) {
+        throw new Error(`Could not load the quotes for the history: ${quotes.error.message}`);
+      }
+      const [accounts, contacts, users, tags, vehicles, documents, ...codeLists] = await Promise.all([
         names<{ name: string }>("account", "id, name", ids.accounts, (row) => row.name),
         names<{ first_name: string | null; last_name: string }>(
           "contact",
@@ -79,6 +89,7 @@ export function createHistoryRepository(db: DbClient) {
         names<{ full_name: string }>("app_user", "id, full_name", ids.users, (row) => row.full_name),
         names<{ name: string }>("tag", "id, name", ids.tags, (row) => row.name),
         names<{ licence_plate: string }>("vehicle", "id, licence_plate", ids.vehicles, (row) => row.licence_plate),
+        names<{ file_name: string }>("document", "id, file_name", ids.documents, (row) => row.file_name),
         ...LOOKUP_TABLES.map(async (table) => {
           const { data, error } = await db.from(table).select("code, label");
           if (error) {
@@ -93,6 +104,8 @@ export function createHistoryRepository(db: DbClient) {
         users,
         tags,
         vehicles,
+        documents,
+        quotes: new Map(quotes.data.map((quote) => [quote.id, QUOTE_VERSION_LABELS[quote.version]])),
         codes: new Map(LOOKUP_TABLES.map((table, index) => [table, codeLists[index]])),
       };
     },

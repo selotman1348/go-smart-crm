@@ -1,4 +1,12 @@
-export type CaseTab = "case" | "vehicle" | "parties" | "damage" | "documents" | "history";
+export type CaseTab =
+  | "case"
+  | "vehicle"
+  | "parties"
+  | "damage"
+  | "quote"
+  | "assessment"
+  | "documents"
+  | "history";
 
 export type CaseWarning = { tab: CaseTab; message: string };
 

@@ -61,13 +61,19 @@ export function optionalNumber(options: { min: number; max: number }) {
   );
 }
 
-/** Whole numbers only, e.g. mileage or model year; empty means no value. */
+/**
+ * Whole numbers only, e.g. mileage or model year; empty means no value.
+ * Thousands may be grouped ("41.250" or "41 250"); "2.5" is not a whole number.
+ */
 export function optionalInteger(options: { min: number; max: number }) {
   const message = `Enter a whole number from ${options.min} to ${options.max}.`;
   return z.preprocess(
     (value) => {
       const text = trimToNull(value);
-      return typeof text === "string" ? Number(text.replace(/[\s.]/g, "")) : text;
+      if (typeof text !== "string") {
+        return text;
+      }
+      return Number(/^\d{1,3}([.\s]\d{3})+$/.test(text) ? text.replace(/[.\s]/g, "") : text);
     },
     z
       .number({ error: message })

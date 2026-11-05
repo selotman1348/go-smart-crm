@@ -39,8 +39,8 @@ async function HistoryTab({ params }: Pick<PageProps<"/cases/[id]/history">, "pa
           </p>
           {entry.changes.length > 0 ? (
             <dl className="mt-1 grid gap-1 text-sm sm:grid-cols-[minmax(10rem,auto)_1fr]">
-              {entry.changes.map((change) => (
-                <div key={change.label} className="contents">
+              {entry.changes.map((change, index) => (
+                <div key={index} className="contents">
                   <dt className="text-muted-foreground">{change.label}</dt>
                   <dd>
                     <span className="text-muted-foreground line-through decoration-muted-foreground/50">

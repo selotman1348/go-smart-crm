@@ -95,6 +95,8 @@ All seed data is fictitious (`scripts/seed/data.ts`). It uses Belgian formats wi
     - **Vehicle:** maintain the vehicle, or find an existing one and link it
     - **Parties**
     - **Damage:** details and damaged parts
+    - **Quote:** pre- and post-calculation with categories, sub-types, live subtotals and total; mark as sent; copy pre to post; the Validate dialog, which changes the status automatically (UC-18 to UC-22, BR-03 to BR-06)
+    - **Assessment:** expert and expert report, the validation summary, total loss and no repair, both closing the case (UC-23 to UC-27, BR-07)
     - **Documents**
     - **History**
   - a status dropdown, handled by the status engine

@@ -2791,6 +2791,47 @@ export type Database = {
         Returns: string
       }
       is_internal_user: { Args: never; Returns: boolean }
+      record_repair_decision: {
+        Args: {
+          p_case_id: string
+          p_decision: Database["public"]["Enums"]["repair_decision"]
+          p_expected_status: Database["public"]["Enums"]["case_status"]
+          p_no_repair_reason: string
+          p_no_repair_reason_text: string
+          p_total_loss_accessories: number
+          p_total_loss_damage_amount: number
+          p_total_loss_previous_damage_deduction: number
+          p_total_loss_vehicle_value: number
+          p_total_loss_wreck_value: number
+        }
+        Returns: undefined
+      }
+      save_quote: {
+        Args: {
+          p_case_id: string
+          p_copied_from_quote_id?: string
+          p_hourly_rate_assembly: number
+          p_hourly_rate_paint: number
+          p_lines: Json
+          p_origin: Database["public"]["Enums"]["quote_origin"]
+          p_total: number
+          p_version: Database["public"]["Enums"]["quote_version"]
+        }
+        Returns: string
+      }
+      validate_quote: {
+        Args: {
+          p_approved_amount_excl_vat: number
+          p_approved_amount_incl_vat: number
+          p_assessment_type: Database["public"]["Enums"]["assessment_type"]
+          p_expected_status: Database["public"]["Enums"]["case_status"]
+          p_expert_account_id: string
+          p_loss_of_use_days: number
+          p_quote_id: string
+          p_vat_applicable: boolean
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       account_type:

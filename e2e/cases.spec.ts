@@ -1,6 +1,14 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-import { adminClient, requireCredentials, signIn, testName } from "./helpers";
+import {
+  adminClient,
+  openCaseTab,
+  removeTestClient,
+  requireCredentials,
+  signIn,
+  testClientCode,
+  testName,
+} from "./helpers";
 
 // Iteration 2 main flow: a case is created, completed end to end and its
 // status changed with history (plan.md section 4). Uses the seed data for
@@ -10,9 +18,7 @@ import { adminClient, requireCredentials, signIn, testName } from "./helpers";
 test.describe.configure({ mode: "serial" });
 
 const clientName = testName("Client");
-// Z + three letters: never one of the seeded client codes, and never DEM, so
-// the demo's DEM20260001 stays free.
-const clientCode = `Z${Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join("")}`;
+const clientCode = testClientCode();
 const plate = `9-ZE${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${String(Math.floor(Math.random() * 900) + 100)}`;
 const tagName = testName("tag");
 let clientId = "";
@@ -32,47 +38,14 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  const db = adminClient();
-  const { data: cases } = await db.from("case").select("id, vehicle_id").eq("client_account_id", clientId);
-  const caseIds = (cases ?? []).map((row) => row.id);
-  const vehicleIds = (cases ?? []).map((row) => row.vehicle_id).filter((id): id is string => Boolean(id));
-  if (caseIds.length > 0) {
-    const { data: documents } = await db.from("document").select("storage_path").in("case_id", caseIds);
-    if (documents?.length) {
-      await db.storage.from("documents").remove(documents.map((row) => row.storage_path));
-    }
-    const { data: damages } = await db.from("damage").select("id").in("case_id", caseIds);
-    const damageIds = (damages ?? []).map((row) => row.id);
-    await db.from("event").delete().in("case_id", caseIds);
-    await db.from("audit_log").delete().in("case_id", caseIds);
-    await db.from("case").delete().in("id", caseIds);
-    // Audit rows written while deleting no longer point to the case.
-    await db.from("audit_log").delete().is("case_id", null).in("entity_id", [...caseIds, ...damageIds]);
-    for (const caseId of caseIds) {
-      await db.from("audit_log").delete().is("case_id", null).like("old_value", `%${caseId}%`);
-    }
-  }
-  if (vehicleIds.length > 0) {
-    await db.from("vehicle").delete().in("id", vehicleIds);
-    await db.from("audit_log").delete().eq("entity", "vehicle").in("entity_id", vehicleIds);
-  }
-  await db.from("tag").delete().eq("name", tagName);
-  await db.from("account").delete().eq("id", clientId);
+  await removeTestClient(clientId, { tagName });
 });
 
 test.beforeEach(async ({ page }) => {
   await signIn(page);
 });
 
-/**
- * Opens a case tab and waits until the navigation has finished: until then
- * the previous tab is still on screen, with fields of the same name.
- */
-async function openTab(page: Page, name: string) {
-  const tab = page.getByRole("navigation", { name: "Case sections" }).getByRole("link", { name, exact: true });
-  await tab.click();
-  await expect(tab).toHaveAttribute("aria-current", "page");
-}
+const openTab = openCaseTab;
 
 test("searches and filters the seeded cases", async ({ page }) => {
   await page.goto("/cases");

@@ -292,6 +292,13 @@ export type Database = {
             foreignKeyName: "assessment_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: true
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -387,6 +394,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "case"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_log_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "case_overview"
             referencedColumns: ["id"]
           },
           {
@@ -630,6 +644,13 @@ export type Database = {
             foreignKeyName: "case_communication_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_communication_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -712,6 +733,13 @@ export type Database = {
             foreignKeyName: "case_party_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_party_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -769,6 +797,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "case"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_tag_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "case_overview"
             referencedColumns: ["id"]
           },
           {
@@ -1126,6 +1161,13 @@ export type Database = {
             foreignKeyName: "damage_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: true
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: true
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -1270,6 +1312,13 @@ export type Database = {
             foreignKeyName: "document_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -1393,6 +1442,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "case"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "case_overview"
             referencedColumns: ["id"]
           },
           {
@@ -1553,6 +1609,13 @@ export type Database = {
             foreignKeyName: "inbound_email_linked_case_id_fkey"
             columns: ["linked_case_id"]
             isOneToOne: false
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inbound_email_linked_case_id_fkey"
+            columns: ["linked_case_id"]
+            isOneToOne: false
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -1611,6 +1674,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "case"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "intake_draft_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "case_overview"
             referencedColumns: ["id"]
           },
           {
@@ -1692,6 +1762,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "case"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "case_overview"
             referencedColumns: ["id"]
           },
           {
@@ -1939,6 +2016,13 @@ export type Database = {
             foreignKeyName: "outbound_message_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outbound_message_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -2074,6 +2158,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "case"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "case_overview"
             referencedColumns: ["id"]
           },
           {
@@ -2250,6 +2341,13 @@ export type Database = {
             foreignKeyName: "status_history_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "status_history_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -2371,6 +2469,13 @@ export type Database = {
             columns: ["case_id"]
             isOneToOne: false
             referencedRelation: "case"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "case_overview"
             referencedColumns: ["id"]
           },
           {
@@ -2499,6 +2604,89 @@ export type Database = {
       }
     }
     Views: {
+      case_overview: {
+        Row: {
+          assigned_to_user_id: string | null
+          assignment_date: string | null
+          broker_ref: string | null
+          case_number: string | null
+          client_account_id: string | null
+          client_name: string | null
+          completion_date: string | null
+          created_at: string | null
+          damage_date: string | null
+          expert_ref: string | null
+          id: string | null
+          insurer_ref: string | null
+          leasing_ref: string | null
+          licence_plate: string | null
+          licence_plate_key: string | null
+          manager_name: string | null
+          manager_user_id: string | null
+          on_hold: boolean | null
+          po_number: string | null
+          policy_number: string | null
+          repairer_account_id: string | null
+          repairer_name: string | null
+          status: Database["public"]["Enums"]["case_status"] | null
+          vda_number: string | null
+          vehicle_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_client_account_id_fkey"
+            columns: ["client_account_id"]
+            isOneToOne: false
+            referencedRelation: "account"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_manager_user_id_fkey"
+            columns: ["manager_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_party_account_id_fkey"
+            columns: ["repairer_account_id"]
+            isOneToOne: false
+            referencedRelation: "account"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      open_cases_per_client: {
+        Row: {
+          client_account_id: string | null
+          client_code: string | null
+          client_name: string | null
+          open_cases: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_client_account_id_fkey"
+            columns: ["client_account_id"]
+            isOneToOne: false
+            referencedRelation: "account"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_line_history: {
         Row: {
           amount: number | null
@@ -2568,6 +2756,13 @@ export type Database = {
             foreignKeyName: "quote_case_id_fkey"
             columns: ["case_id"]
             isOneToOne: false
+            referencedRelation: "case_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
             referencedRelation: "quote_line_history"
             referencedColumns: ["case_id"]
           },
@@ -2575,6 +2770,26 @@ export type Database = {
       }
     }
     Functions: {
+      change_case_status: {
+        Args: {
+          p_automatic?: boolean
+          p_case_id: string
+          p_expected_status: Database["public"]["Enums"]["case_status"]
+          p_new_status: Database["public"]["Enums"]["case_status"]
+        }
+        Returns: undefined
+      }
+      create_case: {
+        Args: {
+          p_assigned_to_user_id: string
+          p_assignment_date: string
+          p_case_number: string
+          p_client_account_id: string
+          p_manager_user_id: string
+          p_owner_account_id: string
+        }
+        Returns: string
+      }
       is_internal_user: { Args: never; Returns: boolean }
     }
     Enums: {

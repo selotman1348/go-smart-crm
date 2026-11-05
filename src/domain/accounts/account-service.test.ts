@@ -17,6 +17,7 @@ function fakeRepository(result: WriteResult = { ok: true, id: ID }): AccountRepo
     list: vi.fn(),
     getById: vi.fn(async () => null),
     listOptions: vi.fn(async () => []),
+    listTypedOptions: vi.fn(async () => []),
     create: vi.fn(async () => result),
     update: vi.fn(async () => result),
   };

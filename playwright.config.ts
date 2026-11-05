@@ -14,6 +14,8 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   workers: isCI ? 1 : undefined,
   reporter: isCI ? [["github"], ["html", { open: "never" }]] : "list",
+  // The dev server compiles a page on its first visit, which can take a while.
+  expect: { timeout: isCI ? 5_000 : 20_000 },
   use: {
     baseURL,
     trace: "on-first-retry",

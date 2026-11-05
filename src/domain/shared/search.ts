@@ -14,10 +14,27 @@ export function searchTerms(query: string | null | undefined): string[] {
  * substring) in any of `columns`. The term is escaped for LIKE (`%`, `_`, `\`)
  * and quoted for PostgREST, so user input cannot change the filter.
  */
+/** Escapes LIKE wildcards (`%`, `_`) and the escape character itself. */
+export function escapeLike(text: string): string {
+  return text.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
+
 export function ilikeAnyFilter(columns: string[], term: string): string {
-  const likePattern = `%${term.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+  return ilikePatternFilter(columns, `%${escapeLike(term)}%`);
+}
+
+/** Like ilikeAnyFilter, for a LIKE pattern that already contains its wildcards. */
+export function ilikePatternFilter(columns: string[], likePattern: string): string {
   const quoted = `"${likePattern.replace(/[\\"]/g, (char) => `\\${char}`)}"`;
   return columns.map((column) => `${column}.ilike.${quoted}`).join(",");
+}
+
+/**
+ * A pattern matching the characters in order with anything in between, so
+ * "9tka101" finds the plate "9-TKA-101".
+ */
+export function looseLikePattern(key: string): string {
+  return `%${[...key].map(escapeLike).join("%")}%`;
 }
 
 /** Page number from a query-string value: a positive integer, default 1. */

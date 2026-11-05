@@ -83,13 +83,35 @@ All seed data is fictitious (`scripts/seed/data.ts`). It uses Belgian formats wi
 - **25 contacts** and **12 vehicles**.
 - **10 cases in 10 different statuses**, with parties, damage, quotes, assessments, invoices, tags and full status history. DEM has no 2026 case, so the demo's first case is DEM20260001.
 
+## What works so far
+
+- **Login** (UC-01): e-mail address and password.
+- **Accounts and Contacts** (UC-38): browse, search, create and edit.
+- **Cases:**
+  - list with search, filters and client tiles (UC-04 to UC-06)
+  - create a case with an automatic case number (UC-08, BR-01)
+  - case screen tabs:
+    - **Case:** header, VDA/PO references with BR-11 warning, on hold, tags
+    - **Vehicle:** maintain the vehicle, or find an existing one and link it
+    - **Parties**
+    - **Damage:** details and damaged parts
+    - **Documents**
+    - **History**
+  - a status dropdown, handled by the status engine
+- **Documents** (UC-36): case documents and a central page for shared documents.
+  - Files go straight from the browser to the private Storage bucket `documents`, which the migrations create.
+  - Limits: 20 MB per file; PDF, images, Word, Excel, `.eml` and text.
+
+Every change to a case is recorded in its History by a database trigger. Status changes go only through the status engine (`docs/decisions.md`, D-033 and D-034).
+
 ## Project layout
 
 ```
 src/
   app/            Routes and UI. No database access here (ESLint enforces it)
   components/     Shared UI; components/ui/ holds the shadcn/ui components
-  domain/         Business rules, repositories and services (auth, accounts, contacts, cases)
+  domain/         Business rules, repositories and services (auth, accounts, contacts, cases,
+                  vehicles, parties, damage, documents, history, lookups, users)
   lib/            Supabase client factories, generated database types, environment settings
   proxy.ts        Refreshes the session and redirects signed-out users
 supabase/         Supabase CLI config and migrations

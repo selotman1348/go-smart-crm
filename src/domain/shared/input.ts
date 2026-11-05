@@ -61,6 +61,35 @@ export function optionalNumber(options: { min: number; max: number }) {
   );
 }
 
+/** Whole numbers only, e.g. mileage or model year; empty means no value. */
+export function optionalInteger(options: { min: number; max: number }) {
+  const message = `Enter a whole number from ${options.min} to ${options.max}.`;
+  return z.preprocess(
+    (value) => {
+      const text = trimToNull(value);
+      return typeof text === "string" ? Number(text.replace(/[\s.]/g, "")) : text;
+    },
+    z
+      .number({ error: message })
+      .int({ error: message })
+      .min(options.min, { error: message })
+      .max(options.max, { error: message })
+      .nullable(),
+  );
+}
+
+/** A calendar date as YYYY-MM-DD (the value of an <input type="date">). */
+export const optionalDate = z.preprocess(
+  trimToNull,
+  z.iso.date({ error: "Enter a valid date." }).nullable(),
+);
+
+/** A lookup or enum code such as "awaiting_parts"; empty means none. */
+export const optionalCode = z.preprocess(
+  trimToNull,
+  z.string().regex(/^[a-z][a-z0-9_]*$/, { error: "Choose a valid option." }).nullable(),
+);
+
 export function stringList(value: unknown): unknown {
   if (value === undefined || value === null || value === "") {
     return [];

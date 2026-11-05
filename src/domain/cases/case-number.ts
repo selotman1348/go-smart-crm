@@ -18,6 +18,28 @@ export function formatCaseNumber(clientCode: string, year: number, sequence: num
   return `${clientCode}${year}${String(sequence).padStart(4, "0")}`;
 }
 
+/**
+ * BR-01: the number after `lastCaseNumber`, the client's highest number in
+ * that year (null for the first case of the year).
+ */
+export function nextCaseNumber(
+  clientCode: string,
+  year: number,
+  lastCaseNumber: string | null,
+): string {
+  if (lastCaseNumber === null) {
+    return formatCaseNumber(clientCode, year, 1);
+  }
+  const last = parseCaseNumber(lastCaseNumber);
+  if (!last || last.clientCode !== clientCode || last.year !== year) {
+    throw new Error(`${lastCaseNumber} is not a ${clientCode} case number for ${year}.`);
+  }
+  if (last.sequence >= MAX_CASE_SEQUENCE) {
+    throw new Error(`All ${MAX_CASE_SEQUENCE} case numbers for ${clientCode} in ${year} are used.`);
+  }
+  return formatCaseNumber(clientCode, year, last.sequence + 1);
+}
+
 export function parseCaseNumber(
   caseNumber: string,
 ): { clientCode: string; year: number; sequence: number } | null {

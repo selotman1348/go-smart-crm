@@ -50,7 +50,7 @@ jobs:
       - name: Start Supabase
         run: >-
           npx supabase start
-          -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+          -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Export Supabase settings
         run: |

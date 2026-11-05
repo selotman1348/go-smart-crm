@@ -45,6 +45,8 @@ export type AccountListItem = Pick<
 
 export type AccountOption = { id: string; name: string };
 
+export type TypedAccountOption = AccountOption & { accountTypes: AccountType[] };
+
 export type AccountListQuery = {
   search?: string;
   type?: AccountType;
@@ -145,13 +147,26 @@ export function createAccountRepository(db: DbClient) {
       return data ? toAccount(data) : null;
     },
 
-    /** All accounts as picker options, e.g. for the parent account or a contact's employer. */
-    async listOptions(): Promise<AccountOption[]> {
-      const { data, error } = await db.from("account").select("id, name").order("name").limit(1000);
+    /** Accounts as picker options, optionally only those of one type. */
+    async listOptions(type?: AccountType): Promise<AccountOption[]> {
+      let request = db.from("account").select("id, name").order("name").limit(1000);
+      if (type) {
+        request = request.contains("account_type", [type]);
+      }
+      const { data, error } = await request;
       if (error) {
         throw new Error(`Could not load accounts: ${error.message}`);
       }
       return data;
+    },
+
+    /** All accounts with their types, for pickers that filter by type in the browser. */
+    async listTypedOptions(): Promise<TypedAccountOption[]> {
+      const { data, error } = await db.from("account").select("id, name, account_type").order("name").limit(1000);
+      if (error) {
+        throw new Error(`Could not load accounts: ${error.message}`);
+      }
+      return data.map((row) => ({ id: row.id, name: row.name, accountTypes: row.account_type }));
     },
 
     async create(input: AccountInput): Promise<WriteResult> {

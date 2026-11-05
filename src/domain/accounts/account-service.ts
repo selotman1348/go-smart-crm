@@ -3,6 +3,7 @@ import type { RepositoryError } from "@/domain/shared/repository";
 
 import { parseAccountInput, type AccountField } from "./account-input";
 import type { AccountListQuery, AccountRepository } from "./account-repository";
+import type { AccountType } from "./account-types";
 
 export const ACCOUNT_SAVE_FAILED_MESSAGE = "The account could not be saved. Please try again.";
 export const ACCOUNT_NOT_FOUND_MESSAGE = "This account no longer exists.";
@@ -35,8 +36,12 @@ export function createAccountService(repository: AccountRepository) {
       return isUuid(id) ? repository.getById(id) : Promise.resolve(null);
     },
 
-    listOptions() {
-      return repository.listOptions();
+    listOptions(type?: AccountType) {
+      return repository.listOptions(type);
+    },
+
+    listTypedOptions() {
+      return repository.listTypedOptions();
     },
 
     /** UC-38: creates an account, or updates it when `accountId` is given. */

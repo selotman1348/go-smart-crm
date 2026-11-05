@@ -15,6 +15,14 @@ const NAV_SECTIONS = [
       { href: "/contacts", label: "Contacts" },
     ],
   },
+  {
+    title: "Damage claims",
+    items: [{ href: "/cases", label: "Cases" }],
+  },
+  {
+    title: "Files",
+    items: [{ href: "/documents", label: "Documents" }],
+  },
 ];
 
 export function AppNavLinks({ pathname }: { pathname: string | null }) {

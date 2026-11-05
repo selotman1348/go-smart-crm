@@ -1,6 +1,26 @@
 import { describe, expect, it } from "vitest";
 
-import { CASE_NUMBER_PATTERN, formatCaseNumber, parseCaseNumber } from "./case-number";
+import { CASE_NUMBER_PATTERN, formatCaseNumber, nextCaseNumber, parseCaseNumber } from "./case-number";
+
+describe("nextCaseNumber (BR-01)", () => {
+  it("starts at 0001 for the client's first case of the year", () => {
+    expect(nextCaseNumber("DEM", 2026, null)).toBe("DEM20260001");
+  });
+
+  it("continues after the client's highest number that year", () => {
+    expect(nextCaseNumber("VCR", 2026, "VCR20260005")).toBe("VCR20260006");
+    expect(nextCaseNumber("VCR", 2026, "VCR20260099")).toBe("VCR20260100");
+  });
+
+  it("refuses a last number of another client or year", () => {
+    expect(() => nextCaseNumber("VCR", 2026, "VFS20260005")).toThrow();
+    expect(() => nextCaseNumber("VCR", 2027, "VCR20260005")).toThrow();
+  });
+
+  it("stops after 9999 cases in a year", () => {
+    expect(() => nextCaseNumber("VCR", 2026, "VCR20269999")).toThrow(/9999/);
+  });
+});
 
 describe("formatCaseNumber (BR-01)", () => {
   it("joins client code, 4-digit year and 4-digit sequence", () => {

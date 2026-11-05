@@ -12,6 +12,28 @@ export type FormState<Field extends string> = {
 
 export const initialFormState = { version: 0 };
 
+type StoredValue = string | string[] | number | boolean | null | undefined;
+
+/**
+ * Default values for form fields: what the user submitted (after a rejected
+ * save), otherwise the stored record. Checkboxes submit "on" when ticked.
+ */
+export function formDefaults(submitted: FormValues | undefined, stored: Record<string, StoredValue>) {
+  return {
+    text(name: string): string {
+      const value = submitted ? submitted[name] : stored[name];
+      return typeof value === "string" || typeof value === "number" ? String(value) : "";
+    },
+    checked(name: string): boolean {
+      return submitted ? submitted[name] === "on" : stored[name] === true;
+    },
+    list(name: string): string[] {
+      const value = submitted ? submitted[name] : stored[name];
+      return Array.isArray(value) ? value : [];
+    },
+  };
+}
+
 /** Reads a form into a plain object; `lists` names the fields that can repeat (checkbox groups). */
 export function readForm(formData: FormData, lists: string[] = []): FormValues {
   const values: FormValues = {};

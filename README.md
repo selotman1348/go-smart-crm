@@ -141,19 +141,55 @@ e2e/              Playwright tests
 
 ## Deploying to Vercel
 
+The Hobby plan is for personal, non-commercial use only; a CRM used by a business needs Pro. Hobby runs cron jobs at most once a day, which is enough for `vercel.json` (daily at 06:00 UTC).
+
+Generate each new secret in your own terminal, and paste it only into Vercel or Postmark:
+
+```sh
+node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
+```
+
 1. Push the repository to GitHub.
 2. In Vercel, click **Add New > Project** and import the repository. The framework preset is detected as Next.js, and the defaults need no changes.
-3. Under **Environment Variables**, add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, with the same values as in `.env.local`.
+3. Under **Environment Variables**, add (see `.env.example`):
+   - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, with the same values as in `.env.local`.
+   - `SUPABASE_SECRET_KEY` (the inbound webhook, the agent API and the event dispatcher use it) and `INBOUND_EMAIL_SECRET`, with the same values as in `.env.local`. Mark both **Sensitive**.
+   - `CRON_SECRET`: a new secret, marked Sensitive. Vercel Cron sends it to `/api/events/dispatch`.
+   - `COMPANY_NAME` and `INVOICING_EMAIL`: your company name and invoicing address, printed on the repair order.
+   - `POSTMARK_SERVER_TOKEN` and `EMAIL_FROM`: see [E-mail (Postmark)](#e-mail-postmark). Without the token, e-mails are logged on the case but not delivered.
+   - `EVENT_WEBHOOK_URL` and `EVENT_WEBHOOK_SECRET`: only if another system should receive the events (`docs/api.md`).
 
-   For e-mail, also add `SUPABASE_SECRET_KEY` (the inbound webhook stores e-mails with it), `INBOUND_EMAIL_SECRET`, `POSTMARK_SERVER_TOKEN`, `EMAIL_FROM`, `COMPANY_NAME` and `INVOICING_EMAIL` (see `.env.example`). Without `POSTMARK_SERVER_TOKEN`, e-mails are logged on the case but not delivered.
-4. Click **Deploy**.
-5. In the Supabase dashboard, go to **Authentication > URL Configuration**. Set **Site URL** to the Vercel production URL (for example `https://go-smart-crm.vercel.app`), and add `http://localhost:3000` under **Redirect URLs**.
-6. Open the Vercel URL and sign in with a seeded user. You should see the empty dashboard.
+   `SUPABASE_ACCESS_TOKEN`, `SEED_USER_PASSWORD` and `E2E_USER_EMAIL` are for the CLI and the tests only; don't add them. Preview deployments use the same Supabase database as production.
+4. Under **Settings > Build and Deployment**, check that **Node.js Version** is 24.x. Under **Settings > Functions**, set **Function Region** to the region closest to your Supabase project.
+5. Click **Deploy**. After changing an environment variable later, redeploy (**Deployments > … > Redeploy**); a running deployment keeps the old values.
+6. In the Supabase dashboard, go to **Authentication > URL Configuration**. Set **Site URL** to the Vercel production URL (for example `https://go-smart-crm.vercel.app`), and add `http://localhost:3000` under **Redirect URLs**.
+7. Open the Vercel URL and sign in with a seeded user. You should see the dashboard. Under **Settings > Cron Jobs**, **Run** on `/api/events/dispatch` answers "No event webhook is configured" until `EVENT_WEBHOOK_URL` is set.
+
+The hosted database holds the seed data, so on a public URL anyone who knows `SEED_USER_PASSWORD` can sign in. Make sure it is strong and not used anywhere else.
 
 ### E-mail (Postmark)
 
-1. In Postmark, create a server and confirm the sender address of `EMAIL_FROM` (a sender signature or the domain). Copy the server's API token into `POSTMARK_SERVER_TOKEN`.
-2. In the server's **Default Inbound Stream > Settings**, set the webhook URL to `https://postmark:<INBOUND_EMAIL_SECRET>@<your-vercel-host>/api/inbound-email`. Postmark posts every e-mail sent to the stream's inbound address there; forward the intake mailbox to that address.
-3. Send an e-mail with an existing case number in the subject: it appears on the case's Communications tab. Without a case number, it appears in the Inbox.
+Receiving e-mail (inbound processing) needs the Pro or Platform plan; the free plan doesn't include it. Check [postmarkapp.com/pricing](https://postmarkapp.com/pricing) before choosing.
 
-Vercel accepts request bodies up to 4.5 MB, so larger e-mails don't arrive through the webhook; save them as `.eml` and use "Upload .eml" in the Inbox.
+**Sending**
+
+1. In Postmark, go to **Servers > Create server** and create a **Live** server.
+2. Go to **Sender Signatures > Add Domain** and add your domain. Add the DKIM (TXT) and Return-Path (CNAME) records Postmark shows at your DNS provider, then click **Verify**.
+3. Set `EMAIL_FROM` to an address on that domain, for example `Go Smart CRM <cases@yourdomain.com>`. The built-in default uses the fictitious `gosmart.example`, which Postmark can't send from.
+4. Click **Request approval**. Until Postmark approves the account (usually within a working day), it is in test mode and sends only to addresses on your own verified domain.
+5. In the server's **API Tokens**, copy the Server API token into `POSTMARK_SERVER_TOKEN` in Vercel (Sensitive), and redeploy. The app sends through the default transactional stream `outbound`.
+
+**Receiving**
+
+6. In the server's **Default Inbound Stream > Settings**, set the webhook URL to `https://postmark:<INBOUND_EMAIL_SECRET>@<your-production-domain>/api/inbound-email`. Use the production domain, not a deployment URL: Vercel's Deployment Protection refuses outside callers there. "Include raw email content" can stay off.
+7. Route the intake mailbox to the stream's inbound address (`…@inbound.postmarkapp.com`, on the same settings page), in one of two ways:
+   - Forward the mailbox (for example `cases@yourdomain.com`) to it. Microsoft 365 blocks automatic forwarding outside the organisation by default; an admin has to allow it.
+   - Or use an inbound domain: an MX record for a subdomain such as `intake.yourdomain.com` pointing to `inbound.postmarkapp.com`, entered as **Inbound domain** in the stream's settings.
+
+**Testing**
+
+8. On a case's **Communications** tab, send a template e-mail to your own address. It arrives, and Postmark's **Activity** shows it.
+9. Send an e-mail with an existing case number in the subject to the intake address: it appears on the case's Communications tab. Without a case number, it appears in the Inbox.
+10. If an e-mail doesn't arrive, the inbound activity in Postmark shows the webhook's answer:
+    - **401**: the secret in the webhook URL doesn't match `INBOUND_EMAIL_SECRET` in Vercel, or the deployment predates it.
+    - **413**: the e-mail is larger than the 4.5 MB Vercel accepts. Save it as `.eml` and use "Upload .eml" in the Inbox.

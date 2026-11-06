@@ -96,10 +96,12 @@ All seed data is fictitious (`scripts/seed/data.ts`). It uses Belgian formats wi
     - **Parties**
     - **Damage:** details and damaged parts
     - **Quote:** pre- and post-calculation with categories, sub-types, live subtotals and total; mark as sent; copy pre to post; the Validate dialog, which changes the status automatically (UC-18 to UC-22, BR-03 to BR-06)
-    - **Assessment:** expert and expert report, the validation summary, total loss and no repair, both closing the case (UC-23 to UC-27, BR-07)
+    - **Assessment:** expert and expert report, the validation summary, total loss and no repair, both closing the case (UC-23 to UC-27, BR-07); "Send assessment order"
+    - **Communications:** the log with filters (e-mails in/out, phone calls, other) and a processed flag; e-mails from templates in English or Dutch with merge fields, To/Cc/Bcc and attachments, including the generated repair-order PDF; logging phone calls (UC-13 to UC-15, UC-33, UC-35)
     - **Documents**
     - **History**
   - a status dropdown, handled by the status engine
+- **Inbox** (UC-34): e-mails sent or forwarded to the intake address arrive through the webhook `/api/inbound-email`. An e-mail whose subject contains a case number is logged on that case automatically, with its attachments (BR-10); the others wait in the Inbox, with "Create case from e-mail" and "Link to case". "Upload .eml" feeds a saved e-mail into the same pipeline; `docs/demo/` has two sample e-mails for the demo script.
 - **Documents** (UC-36): case documents and a central page for shared documents.
   - Files go straight from the browser to the private Storage bucket `documents`, which the migrations create.
   - Limits: 20 MB per file; PDF, images, Word, Excel, `.eml` and text.
@@ -113,7 +115,8 @@ src/
   app/            Routes and UI. No database access here (ESLint enforces it)
   components/     Shared UI; components/ui/ holds the shadcn/ui components
   domain/         Business rules, repositories and services (auth, accounts, contacts, cases,
-                  vehicles, parties, damage, documents, history, lookups, users)
+                  vehicles, parties, damage, quotes, assessment, communications, intake,
+                  documents, history, lookups, users)
   lib/            Supabase client factories, generated database types, environment settings
   proxy.ts        Refreshes the session and redirects signed-out users
 supabase/         Supabase CLI config and migrations
@@ -135,7 +138,15 @@ e2e/              Playwright tests
 2. In Vercel, click **Add New > Project** and import the repository. The framework preset is detected as Next.js, and the defaults need no changes.
 3. Under **Environment Variables**, add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, with the same values as in `.env.local`.
 
-   The running app doesn't need `SUPABASE_SECRET_KEY` (only the seed script does), so don't add it.
+   For e-mail, also add `SUPABASE_SECRET_KEY` (the inbound webhook stores e-mails with it), `INBOUND_EMAIL_SECRET`, `POSTMARK_SERVER_TOKEN`, `EMAIL_FROM`, `COMPANY_NAME` and `INVOICING_EMAIL` (see `.env.example`). Without `POSTMARK_SERVER_TOKEN`, e-mails are logged on the case but not delivered.
 4. Click **Deploy**.
 5. In the Supabase dashboard, go to **Authentication > URL Configuration**. Set **Site URL** to the Vercel production URL (for example `https://go-smart-crm.vercel.app`), and add `http://localhost:3000` under **Redirect URLs**.
 6. Open the Vercel URL and sign in with a seeded user. You should see the empty dashboard.
+
+### E-mail (Postmark)
+
+1. In Postmark, create a server and confirm the sender address of `EMAIL_FROM` (a sender signature or the domain). Copy the server's API token into `POSTMARK_SERVER_TOKEN`.
+2. In the server's **Default Inbound Stream > Settings**, set the webhook URL to `https://postmark:<INBOUND_EMAIL_SECRET>@<your-vercel-host>/api/inbound-email`. Postmark posts every e-mail sent to the stream's inbound address there; forward the intake mailbox to that address.
+3. Send an e-mail with an existing case number in the subject: it appears on the case's Communications tab. Without a case number, it appears in the Inbox.
+
+Vercel accepts request bodies up to 4.5 MB, so larger e-mails don't arrive through the webhook; save them as `.eml` and use "Upload .eml" in the Inbox.

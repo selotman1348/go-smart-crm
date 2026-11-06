@@ -5,6 +5,7 @@ export type CaseTab =
   | "damage"
   | "quote"
   | "assessment"
+  | "communications"
   | "documents"
   | "history";
 

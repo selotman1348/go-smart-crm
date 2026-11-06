@@ -12,7 +12,7 @@ import type { AccountOption } from "@/domain/accounts/account-repository";
 import { initialFormState } from "../../form-state";
 import { createCaseAction, type NewCaseFormState } from "../actions";
 
-export function NewCaseForm({ clients }: { clients: AccountOption[] }) {
+export function NewCaseForm({ clients, emailId }: { clients: AccountOption[]; emailId: string | null }) {
   const [state, formAction, pending] = useActionState<NewCaseFormState, FormData>(
     createCaseAction,
     initialFormState,
@@ -21,6 +21,7 @@ export function NewCaseForm({ clients }: { clients: AccountOption[] }) {
 
   return (
     <form action={formAction} className="grid gap-6">
+      {emailId ? <input type="hidden" name="emailId" value={emailId} /> : null}
       {state.formError ? (
         <Alert variant="destructive">
           <AlertDescription>{state.formError}</AlertDescription>
@@ -54,7 +55,7 @@ export function NewCaseForm({ clients }: { clients: AccountOption[] }) {
         <Button type="submit" disabled={pending}>
           {pending ? "Creating…" : "Create case"}
         </Button>
-        <Link href="/cases" className={buttonVariants({ variant: "outline" })}>
+        <Link href={emailId ? `/inbox/${emailId}` : "/cases"} className={buttonVariants({ variant: "outline" })}>
           Cancel
         </Link>
       </div>

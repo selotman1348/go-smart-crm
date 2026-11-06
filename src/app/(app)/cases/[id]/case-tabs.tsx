@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import type { CaseTab } from "@/domain/cases/case-warnings";
 import { cn } from "@/lib/utils";
 
-// design.md section 4. Communications follows in iteration 4.
+// design.md section 4.
 const TABS: { tab: CaseTab; segment: string; label: string }[] = [
   { tab: "case", segment: "", label: "Case" },
   { tab: "vehicle", segment: "/vehicle", label: "Vehicle" },
@@ -14,6 +14,7 @@ const TABS: { tab: CaseTab; segment: string; label: string }[] = [
   { tab: "damage", segment: "/damage", label: "Damage" },
   { tab: "quote", segment: "/quote", label: "Quote" },
   { tab: "assessment", segment: "/assessment", label: "Assessment" },
+  { tab: "communications", segment: "/communications", label: "Communications" },
   { tab: "documents", segment: "/documents", label: "Documents" },
   { tab: "history", segment: "/history", label: "History" },
 ];
@@ -33,7 +34,7 @@ export function CaseTabLinks({
       <ul className="flex gap-1">
         {TABS.map(({ tab, segment, label }) => {
           const href = `${base}${segment}`;
-          const active = pathname === href;
+          const active = pathname === href || (segment !== "" && pathname?.startsWith(`${href}/`) === true);
           const warning = warningTabs.includes(tab);
           return (
             <li key={tab}>

@@ -83,6 +83,13 @@ describe("resolveAuthRedirect", () => {
     ).toBe(HOME_PATH);
   });
 
+  it("lets the inbound e-mail webhook through without a session", () => {
+    expect(resolveAuthRedirect({ pathname: "/api/inbound-email", search: "", isSignedIn: false })).toBeNull();
+    expect(resolveAuthRedirect({ pathname: "/api/inbound-email/other", search: "", isSignedIn: false })).toBe(
+      "/login?next=%2Fapi%2Finbound-email%2Fother",
+    );
+  });
+
   it("does not treat paths that only start with the login path as public", () => {
     expect(
       resolveAuthRedirect({ pathname: "/login-history", search: "", isSignedIn: false }),

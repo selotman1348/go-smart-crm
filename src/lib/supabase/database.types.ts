@@ -2790,7 +2790,45 @@ export type Database = {
         }
         Returns: string
       }
+      insert_communication: {
+        Args: { p_case_ids: string[]; p_communication: Json; p_documents: Json }
+        Returns: string
+      }
       is_internal_user: { Args: never; Returns: boolean }
+      link_inbound_email: {
+        Args: {
+          p_case_ids: string[]
+          p_converted: boolean
+          p_documents: Json
+          p_email_id: string
+        }
+        Returns: string
+      }
+      log_communication: {
+        Args: { p_case_id: string; p_communication: Json }
+        Returns: string
+      }
+      receive_inbound_email: {
+        Args: {
+          p_attachments: Json
+          p_case_ids: string[]
+          p_documents: Json
+          p_email: Json
+        }
+        Returns: {
+          duplicate: boolean
+          id: string
+        }[]
+      }
+      record_message_sent: {
+        Args: {
+          p_case_ids: string[]
+          p_communication: Json
+          p_documents: Json
+          p_message_id: string
+        }
+        Returns: string
+      }
       record_repair_decision: {
         Args: {
           p_case_id: string

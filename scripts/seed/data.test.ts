@@ -148,6 +148,23 @@ describe("seed quotes", () => {
   });
 });
 
+describe("seed communications", () => {
+  it("logs an assignment e-mail on every case and links every communication to a case", () => {
+    const assignments = seed.communications.filter((item) => item.subject?.startsWith("New assignment"));
+    expect(assignments).toHaveLength(seed.cases.length);
+    const linked = new Set(seed.caseCommunications.map((link) => link.communication_id));
+    expect(seed.communications.every((item) => linked.has(item.id!))).toBe(true);
+  });
+
+  it("uses only fictitious addresses", () => {
+    const addresses = seed.communications.flatMap((item) => [item.from_address, ...(item.to_addresses ?? [])]).filter(Boolean);
+    expect(addresses.length).toBeGreaterThan(0);
+    for (const address of addresses) {
+      expect(address).toMatch(/@[a-z0-9-]+.example>$/);
+    }
+  });
+});
+
 describe("seed master data", () => {
   it("gives every client a unique client code, and only clients", () => {
     const codes = seed.accounts.map((account) => account.client_code).filter(Boolean);

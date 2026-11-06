@@ -150,6 +150,11 @@ function accountSeedByKey(key: AccountKey): AccountSeed {
   return account;
 }
 
+const accountMailbox = (key: AccountKey) => {
+  const account = accountSeedByKey(key);
+  return `${account.name} <info@${account.domain}.example>`;
+};
+
 // ---------------------------------------------------------------------------
 // Contacts
 // ---------------------------------------------------------------------------
@@ -1155,6 +1160,85 @@ export function buildSeed(users: SeedUserIds) {
     });
   }
 
+  // Communications (UC-33 to UC-35): the assignment e-mail, the repair order
+  // and, on open cases, a phone call that still needs processing.
+  const communications: Insert<"communication">[] = [];
+  const caseCommunications: Insert<"case_communication">[] = [];
+  for (const seed of CASES) {
+    const client = accountSeedByKey(seed.client);
+    const caseNumber = formatCaseNumber(client.clientCode ?? "", seed.year, seed.sequence);
+    const caseId = seedId(`case:${caseNumber}`);
+    const handler = users[seed.assignedTo];
+    const plate = VEHICLES.find((vehicle) => vehicle.key === seed.vehicle)?.plate ?? "";
+    const partyMailbox = (role: Enums["party_role"]) => {
+      const party = seed.parties.find((candidate) => candidate.role === role);
+      if (party?.contact) {
+        const contact = CONTACTS.find((candidate) => candidate.key === party.contact)!;
+        const account = accountSeedByKey(contact.account);
+        return `${contact.firstName} ${contact.lastName} <${slug(contact.firstName)}.${slug(contact.lastName)}@${account.domain}.example>`;
+      }
+      return party?.account ? accountMailbox(party.account) : null;
+    };
+    const add = (key: string, row: Omit<Insert<"communication">, "id" | "created_by" | "created_at">, at: string) => {
+      const id = seedId(`communication:${caseNumber}:${key}`);
+      communications.push({ id, ...row, sent_at: at, created_by: handler, created_at: at });
+      caseCommunications.push({ case_id: caseId, communication_id: id, created_by: handler, created_at: at });
+    };
+
+    const assignedBy = partyMailbox("intermediary") ?? accountMailbox(seed.client);
+    add(
+      "assignment",
+      {
+        channel: "email",
+        direction: "in",
+        subject: `New assignment ${plate}`,
+        body: `Hello,
+
+Please handle the damage to vehicle ${plate}. The claim form and photos are attached.
+
+Kind regards`,
+        from_address: assignedBy,
+        to_addresses: ["Go Smart CRM <intake@gosmart.example>"],
+        processed: true,
+      },
+      seed.history[0].at,
+    );
+    const repairOrder = seed.history.find((step) => step.status === "followup_repairer");
+    const repairer = partyMailbox("repairer");
+    if (repairOrder && repairer) {
+      add(
+        "repair-order",
+        {
+          channel: "email",
+          direction: "out",
+          subject: `New repair order ${caseNumber} – ${plate}`,
+          body: `Please find attached the repair order for case ${caseNumber}.
+
+Please send us your estimate, and always state case number ${caseNumber} in the subject of your e-mails.`,
+          from_address: "Go Smart CRM <cases@gosmart.example>",
+          to_addresses: [repairer],
+          processed: true,
+          language: "en",
+        },
+        repairOrder.at,
+      );
+    }
+    const current = seed.history[seed.history.length - 1];
+    if (current.status !== "closed" && !current.status.startsWith("invoicing")) {
+      add(
+        "driver-call",
+        {
+          channel: "phone",
+          direction: "in",
+          subject: "Driver asked when the vehicle will be ready",
+          body: "Promised to check with the repairer and call back.",
+          processed: false,
+        },
+        new Date(Date.parse(current.at) + 2 * 3600 * 1000).toISOString(),
+      );
+    }
+  }
+
   return {
     accounts,
     contacts,
@@ -1173,5 +1257,7 @@ export function buildSeed(users: SeedUserIds) {
     statusHistory,
     events,
     auditLog,
+    communications,
+    caseCommunications,
   };
 }

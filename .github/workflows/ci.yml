@@ -37,6 +37,7 @@ jobs:
       # Throwaway values for the disposable stack on the runner; not secrets.
       SEED_USER_PASSWORD: ci-only-Passw0rd
       E2E_USER_EMAIL: alex.morgan@gosmart.example
+      INBOUND_EMAIL_SECRET: ci-only-inbound-secret
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

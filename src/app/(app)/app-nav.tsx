@@ -17,7 +17,10 @@ const NAV_SECTIONS = [
   },
   {
     title: "Damage claims",
-    items: [{ href: "/cases", label: "Cases" }],
+    items: [
+      { href: "/cases", label: "Cases" },
+      { href: "/inbox", label: "Inbox" },
+    ],
   },
   {
     title: "Files",

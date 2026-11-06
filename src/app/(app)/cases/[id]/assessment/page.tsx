@@ -4,13 +4,16 @@ import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
 import { DocumentUpload } from "@/components/documents/document-upload";
+import { Button } from "@/components/ui/button";
 import { getAssessmentService } from "@/domain/assessment";
 import { getCaseService } from "@/domain/cases";
 import { getLookups } from "@/domain/lookups";
+import { EXPERT_APPOINTMENT_TEMPLATE } from "@/domain/communications/templates";
 import { ASSESSMENT_TYPE_LABELS } from "@/domain/quotes/validation";
 import { formatMoney } from "@/domain/shared/money";
 import { formatDateTime } from "@/domain/shared/time";
 
+import { startTemplateEmailAction } from "../communications/actions";
 import { recordNoRepairAction, recordTotalLossAction, saveExpertAction } from "./actions";
 import { ExpertForm, NoRepairForm, TotalLossForm } from "./assessment-forms";
 
@@ -81,6 +84,13 @@ async function AssessmentTab({ params }: Pick<PageProps<"/cases/[id]/assessment"
           defaultCategory="expert_report"
           label="Upload the expert report or the client's purchase order"
         />
+        {(data?.experts ?? []).length > 0 && !closed ? (
+          <form action={startTemplateEmailAction.bind(null, detail.id, EXPERT_APPOINTMENT_TEMPLATE)}>
+            <Button type="submit" variant="outline">
+              Send assessment order
+            </Button>
+          </form>
+        ) : null}
       </Section>
 
       <Section id="validation-heading" title="Validation">

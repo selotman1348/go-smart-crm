@@ -4,6 +4,12 @@ export const HOME_PATH = "/dashboard";
 /** Routes that can be opened without a session. */
 const PUBLIC_PATHS = [LOGIN_PATH];
 
+/**
+ * Called by external services, which check their own credentials (the
+ * inbound e-mail webhook's shared secret); never redirected.
+ */
+const WEBHOOK_PATHS = ["/api/inbound-email"];
+
 const ORIGIN_PLACEHOLDER = "http://internal.invalid";
 
 function isPublicPath(pathname: string): boolean {
@@ -46,6 +52,10 @@ export function resolveAuthRedirect(request: {
   isSignedIn: boolean;
 }): string | null {
   const { pathname, search, isSignedIn } = request;
+
+  if (WEBHOOK_PATHS.includes(pathname)) {
+    return null;
+  }
 
   if (isPublicPath(pathname)) {
     if (!isSignedIn) {

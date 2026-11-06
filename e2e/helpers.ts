@@ -64,8 +64,38 @@ export function testClientCode() {
 }
 
 /**
+ * Removes received e-mails (with their stored files, intake drafts and
+ * events): those with these ids, and those whose subject contains the token.
+ */
+export async function removeInboundEmails(ids: string[], subjectToken?: string) {
+  const db = adminClient();
+  const all = new Set(ids);
+  if (subjectToken) {
+    const { data } = await db.from("inbound_email").select("id").like("subject", `%${subjectToken}%`);
+    for (const row of data ?? []) {
+      all.add(row.id);
+    }
+  }
+  for (const id of all) {
+    const [{ data: email }, { data: attachments }] = await Promise.all([
+      db.from("inbound_email").select("raw_storage_path").eq("id", id).maybeSingle(),
+      db.from("inbound_attachment").select("storage_path").eq("inbound_email_id", id),
+    ]);
+    const paths = [email?.raw_storage_path, ...(attachments ?? []).map((row) => row.storage_path)].filter(
+      (path): path is string => Boolean(path),
+    );
+    if (paths.length > 0) {
+      await db.storage.from("inbound").remove(paths);
+    }
+    await db.from("event").delete().eq("payload->>inboundEmailId", id);
+    await db.from("inbound_email").delete().eq("id", id);
+  }
+}
+
+/**
  * Removes a test client with all its cases and everything recorded about them:
- * documents (and their files), vehicles, events and audit rows.
+ * documents (and their files), communications, received e-mails, vehicles,
+ * events and audit rows.
  */
 export async function removeTestClient(clientId: string, extra: { tagName?: string } = {}) {
   const db = adminClient();
@@ -82,9 +112,18 @@ export async function removeTestClient(clientId: string, extra: { tagName?: stri
       await db.storage.from("documents").remove(documents.map((row) => row.storage_path));
     }
     const childIds = [...(damages ?? []), ...(quotes ?? [])].map((row) => row.id);
+    const [{ data: links }, { data: inbound }] = await Promise.all([
+      db.from("case_communication").select("communication_id").in("case_id", caseIds),
+      db.from("inbound_email").select("id").in("linked_case_id", caseIds),
+    ]);
+    await removeInboundEmails((inbound ?? []).map((row) => row.id));
     await db.from("event").delete().in("case_id", caseIds);
     await db.from("audit_log").delete().in("case_id", caseIds);
     await db.from("case").delete().in("id", caseIds);
+    const communicationIds = (links ?? []).map((row) => row.communication_id);
+    if (communicationIds.length > 0) {
+      await db.from("communication").delete().in("id", communicationIds);
+    }
     // Audit rows written while deleting no longer point to the case.
     await db.from("audit_log").delete().is("case_id", null).in("entity_id", [...caseIds, ...childIds]);
     for (const id of [...caseIds, ...childIds]) {

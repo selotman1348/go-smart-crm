@@ -111,6 +111,8 @@ All seed data is fictitious (`scripts/seed/data.ts`). It uses Belgian formats wi
   - Files go straight from the browser to the private Storage bucket `documents`, which the migrations create.
   - Limits: 20 MB per file; PDF, images, Word, Excel, `.eml` and text.
 
+The demo script (`docs/plan.md` section 5) runs end to end as `e2e/demo.spec.ts`; `docs/review.md` checks every use case and business rule.
+
 Every change to a case is recorded in its History by a database trigger. Status changes go only through the status engine (`docs/decisions.md`, D-033 and D-034).
 
 ## Project layout

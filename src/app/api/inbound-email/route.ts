@@ -7,7 +7,7 @@ import { fromEml, fromPostmark, getWebhookIntakeService } from "@/domain/intake"
  * to the case whose number is in the subject (BR-10), or left in the Inbox.
  */
 export async function POST(request: Request) {
-  const intake = getWebhookIntakeService(request.headers.get("authorization"));
+  const intake = await getWebhookIntakeService(request.headers.get("authorization"));
   if (!intake) {
     return Response.json({ error: "Unauthorized" }, { status: 401, headers: { "WWW-Authenticate": "Basic" } });
   }

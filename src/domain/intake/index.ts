@@ -20,9 +20,9 @@ export async function getIntakeService(): Promise<IntakeService> {
  * The inbound webhook (no user session): null unless the request carries the
  * shared secret, then a service working with the service role.
  */
-export function getWebhookIntakeService(authorization: string | null): IntakeService | null {
+export async function getWebhookIntakeService(authorization: string | null): Promise<IntakeService | null> {
   if (!isAuthorizedWebhook(authorization, process.env.INBOUND_EMAIL_SECRET)) {
     return null;
   }
-  return createIntakeService(createInboundRepository(createServiceClient()));
+  return createIntakeService(createInboundRepository(await createServiceClient()));
 }

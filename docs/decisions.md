@@ -114,6 +114,16 @@ Decided without the product owner (autopilot, 2026-11-06); the open questions be
 | D-077 | **Event webhooks:** `/api/events/dispatch` (Vercel Cron, `CRON_SECRET`) posts undelivered events to `EVENT_WEBHOOK_URL`, signed with HMAC-SHA256 (`EVENT_WEBHOOK_SECRET`), oldest first; it stops at the first failure to keep the order. `vercel.json` schedules it daily (the Hobby plan's limit). There is one subscriber URL, not a subscription table. | design.md section 4 lists "event table + webhooks"; one subscriber is enough until phase 2 (Q-031). |
 | D-078 | **Placeholder pages** for Leads, Notes, Surveys and Repairs (dashboard, network, cases), all in the menu of design.md section 4. | requirements.md section 4, plan.md section 6. |
 | D-079 | **Seed:** seven tasks (open ones in every category, one done). The BR-08 rules come from the migration. | Demo script step 8: the dashboard has data. |
+| D-080 | **The service-role client waits for a request** (`connection()`), like the user client. Otherwise Next prerendered the agent API's GET route at build time and failed without the secret key. | Found in CI, where the build runs without Supabase settings. |
+
+## Final review
+
+`docs/review.md` checks every use case and business rule and the demo script (autopilot, 2026-11-06).
+
+| ID | Decision | Reason |
+| --- | --- | --- |
+| D-081 | **UC-20:** the Quote tab has "E-mail the estimate to the broker". It opens the general template as a draft addressed to the intermediary; the user attaches the estimate document and sends it, then uses "Mark as sent to broker". | The review found no direct way to send the estimate. |
+| D-082 | **Demo test** `e2e/demo.spec.ts` runs the demo script on the seeded client Demo Fleet BV and removes its case afterwards, so DEM20260001 stays free for the live demo. | plan.md section 5. |
 
 ## Open questions
 
@@ -152,3 +162,5 @@ Decided without the product owner (autopilot, 2026-11-06); the open questions be
 | Q-031 | How many event subscribers are needed, and how often must events be delivered? | One subscriber URL, delivered daily by Vercel Cron (more often needs a Pro plan or an external scheduler). |
 | Q-032 | Should users manage API clients (create keys, deactivate) in the app? | No. The `npm run api:key` script creates them; the Supabase dashboard deactivates them. |
 | Q-033 | Should tasks be editable, deletable, or created automatically (for example a follow-up after sending a template)? | No. Tasks are created by hand and marked as done. |
+| Q-034 | Should the application warn when the invoice party may be the wrong legal entity (BR-02), for example when the driver's e-mail domain belongs to another company of the group? | No automatic check; the user decides, as BR-02 describes. |
+| Q-035 | design.md's menu starts with "Home". Is a separate home page needed? | No. The Dashboard is the home page. |

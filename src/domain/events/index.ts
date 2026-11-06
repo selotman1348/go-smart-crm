@@ -42,11 +42,11 @@ export function isAuthorizedDispatch(authorization: string | null): boolean {
 }
 
 /** The dispatcher for EVENT_WEBHOOK_URL, or null when no subscriber is configured. */
-export function getEventDispatcher() {
+export async function getEventDispatcher() {
   const url = process.env.EVENT_WEBHOOK_URL;
   const secret = process.env.EVENT_WEBHOOK_SECRET;
   if (!url || !secret) {
     return null;
   }
-  return createEventDispatcher({ repository: createEventRepository(createServiceClient()), url, secret });
+  return createEventDispatcher({ repository: createEventRepository(await createServiceClient()), url, secret });
 }

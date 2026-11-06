@@ -135,10 +135,14 @@ export function createCommunicationService(deps: {
       return result.ok ? result : { ok: false, formError: "The communication could not be saved. Please try again." };
     },
 
-    /** UC-33, step 1: the template rendered with the case's data, as a draft. */
+    /**
+     * UC-33, step 1: the template rendered with the case's data, as a draft.
+     * `audience` overrides the template's addressee, e.g. the general mail
+     * to the intermediary for the estimate (UC-20).
+     */
     async createDraft(
       caseId: string,
-      input: { templateCode?: unknown; language?: unknown },
+      input: { templateCode?: unknown; language?: unknown; audience?: unknown },
       user: User,
     ): Promise<{ ok: true; id: string } | { ok: false; formError: string }> {
       const language = (TEMPLATE_LANGUAGES as readonly unknown[]).includes(input.language) ? (input.language as string) : null;
@@ -160,7 +164,7 @@ export function createCommunicationService(deps: {
         caseId,
         templateId: template.id,
         mergeData,
-        to: recipientsFor(template.audience, context.parties),
+        to: recipientsFor(typeof input.audience === "string" ? input.audience : template.audience, context.parties),
         subject: renderTemplate(template.subject, mergeData).text,
         body: renderTemplate(template.body, mergeData).text,
       });

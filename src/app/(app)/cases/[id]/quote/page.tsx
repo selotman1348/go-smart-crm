@@ -8,6 +8,9 @@ import { getCaseService } from "@/domain/cases";
 import { getQuoteService } from "@/domain/quotes";
 import { getVehicleService } from "@/domain/vehicles";
 
+import { Button } from "@/components/ui/button";
+
+import { startTemplateEmailAction } from "../communications/actions";
 import { saveQuoteAction, validateQuoteAction } from "./actions";
 import { CopyToPostButton, MarkSentButton } from "./quote-buttons";
 import { QuoteEditor } from "./quote-editor";
@@ -72,7 +75,17 @@ async function QuoteTab({ params }: Pick<PageProps<"/cases/[id]/quote">, "params
         quote={pre}
         action={saveQuoteAction.bind(null, detail.id, "pre_calculation")}
         toolbar={
-          pre && pre.status === "draft" && pre.lines.length > 0 ? <MarkSentButton caseId={detail.id} /> : null
+          pre && pre.status !== "validated" && pre.lines.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {/* UC-20: the estimate goes to the broker by e-mail; then it is marked as sent. */}
+              <form action={startTemplateEmailAction.bind(null, detail.id, "general", "intermediary")}>
+                <Button type="submit" variant="outline" size="sm">
+                  E-mail the estimate to the broker
+                </Button>
+              </form>
+              {pre.status === "draft" ? <MarkSentButton caseId={detail.id} /> : null}
+            </div>
+          ) : null
         }
       />
 

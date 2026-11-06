@@ -102,7 +102,7 @@ async function AssessmentTab({ params }: Pick<PageProps<"/cases/[id]/assessment"
           label="Upload the expert report or the client's purchase order"
         />
         {(data?.experts ?? []).length > 0 && !closed ? (
-          <form action={startTemplateEmailAction.bind(null, detail.id, EXPERT_APPOINTMENT_TEMPLATE)}>
+          <form action={startTemplateEmailAction.bind(null, detail.id, EXPERT_APPOINTMENT_TEMPLATE, null)}>
             <Button type="submit" variant="outline">
               Send assessment order
             </Button>
@@ -183,12 +183,12 @@ async function AssessmentTab({ params }: Pick<PageProps<"/cases/[id]/assessment"
               <>
                 <DocumentUpload caseId={detail.id} categories={["invoice"]} defaultCategory="invoice" label="Upload the repairer invoice" />
                 <div className="flex flex-wrap gap-2">
-                  <form action={startTemplateEmailAction.bind(null, detail.id, "invoice_no_approval")}>
+                  <form action={startTemplateEmailAction.bind(null, detail.id, "invoice_no_approval", null)}>
                     <Button type="submit" variant="outline" size="sm">
                       E-mail: invoice – no expert report/approval
                     </Button>
                   </form>
-                  <form action={startTemplateEmailAction.bind(null, detail.id, "invoice_amount_incorrect")}>
+                  <form action={startTemplateEmailAction.bind(null, detail.id, "invoice_amount_incorrect", null)}>
                     <Button type="submit" variant="outline" size="sm">
                       E-mail: invoice – amount incorrect
                     </Button>

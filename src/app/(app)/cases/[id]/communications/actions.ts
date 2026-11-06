@@ -52,11 +52,14 @@ export async function createDraftAction(
   redirect(`/cases/${caseId}/communications/messages/${result.id}`);
 }
 
-/** A template e-mail started from another tab, e.g. "Send assessment order" (UC-23). */
-export async function startTemplateEmailAction(caseId: string, templateCode: string): Promise<void> {
+/**
+ * A template e-mail started from another tab, e.g. "Send assessment order"
+ * (UC-23); `audience` (a party role) overrides the template's addressee.
+ */
+export async function startTemplateEmailAction(caseId: string, templateCode: string, audience: string | null): Promise<void> {
   const user = await requireUser();
   const communications = await getCommunicationService();
-  const result = await communications.createDraft(caseId, { templateCode, language: "en" }, user);
+  const result = await communications.createDraft(caseId, { templateCode, language: "en", audience: audience ?? undefined }, user);
   redirect(result.ok ? `/cases/${caseId}/communications/messages/${result.id}` : `/cases/${caseId}/communications`);
 }
 

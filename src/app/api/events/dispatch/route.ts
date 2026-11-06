@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   if (!isAuthorizedDispatch(request.headers.get("authorization"))) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const dispatcher = getEventDispatcher();
+  const dispatcher = await getEventDispatcher();
   if (!dispatcher) {
     return Response.json({ delivered: 0, skipped: "No event webhook is configured." });
   }

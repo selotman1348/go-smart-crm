@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
+import { connection } from "next/server";
 
 import { getSupabaseEnv } from "@/lib/env";
 
@@ -13,7 +14,9 @@ import type { DbClient } from "./server";
  * row-level security, so only src/domain/intake, src/domain/api and
  * src/domain/events use it, after checking the caller's secret or API key.
  */
-export function createServiceClient(): DbClient {
+export async function createServiceClient(): Promise<DbClient> {
+  // Only for a real request, never while prerendering a route at build time.
+  await connection();
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   if (!secretKey) {
     throw new Error("Missing SUPABASE_SECRET_KEY in the environment (see .env.example).");

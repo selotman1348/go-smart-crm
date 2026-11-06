@@ -102,7 +102,18 @@ export async function removeInboundEmails(ids: string[], subjectToken?: string) 
  */
 export async function removeTestClient(clientId: string, extra: { tagName?: string } = {}) {
   const db = adminClient();
-  const { data: cases } = await db.from("case").select("id, vehicle_id").eq("client_account_id", clientId);
+  const { data: cases } = await db.from("case").select("id").eq("client_account_id", clientId);
+  await removeCases((cases ?? []).map((row) => row.id));
+  if (extra.tagName) {
+    await db.from("tag").delete().eq("name", extra.tagName);
+  }
+  await db.from("account").delete().eq("id", clientId);
+}
+
+/** Removes test cases with everything recorded about them (see removeTestClient). */
+export async function removeCases(ids: string[]) {
+  const db = adminClient();
+  const { data: cases } = await db.from("case").select("id, vehicle_id").in("id", ids);
   const caseIds = (cases ?? []).map((row) => row.id);
   const vehicleIds = (cases ?? []).map((row) => row.vehicle_id).filter((id): id is string => Boolean(id));
   if (caseIds.length > 0) {
@@ -137,8 +148,4 @@ export async function removeTestClient(clientId: string, extra: { tagName?: stri
     await db.from("vehicle").delete().in("id", vehicleIds);
     await db.from("audit_log").delete().eq("entity", "vehicle").in("entity_id", vehicleIds);
   }
-  if (extra.tagName) {
-    await db.from("tag").delete().eq("name", extra.tagName);
-  }
-  await db.from("account").delete().eq("id", clientId);
 }

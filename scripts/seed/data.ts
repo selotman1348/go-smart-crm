@@ -1239,6 +1239,34 @@ Please send us your estimate, and always state case number ${caseNumber} in the 
     }
   }
 
+  // Tasks (UC-03): open work in every dashboard category (UC-02), one done.
+  const TASK_SEEDS: { title: string; category: Enums["task_category"]; caseIndex: number | null; done?: boolean }[] = [
+    { title: "Call the driver back about the repair date", category: "my_tasks", caseIndex: 1 },
+    { title: "Chase the estimate from the repairer", category: "repairer_dealer", caseIndex: 2 },
+    { title: "Ask the insurer for the policy conditions", category: "fleet_insurer", caseIndex: 3 },
+    { title: "Order the replacement mirror cap", category: "supplier", caseIndex: 4 },
+    { title: "Send the estimate to the broker", category: "broker", caseIndex: 5 },
+    { title: "Prepare the monthly fleet report", category: "my_tasks", caseIndex: null },
+    { title: "Confirm the courtesy car return", category: "repairer_dealer", caseIndex: 0, done: true },
+  ];
+  const tasks: Insert<"task">[] = TASK_SEEDS.map((task, index) => {
+    const seed = task.caseIndex === null ? null : CASES[task.caseIndex];
+    const caseNumber = seed ? formatCaseNumber(accountSeedByKey(seed.client).clientCode ?? "", seed.year, seed.sequence) : null;
+    const assignee = seed ? users[seed.assignedTo] : users.alex;
+    const createdAt = seed ? seed.history[seed.history.length - 1].at : "2026-10-15T09:00:00+02:00";
+    return {
+      id: seedId(`task:${index}`),
+      title: task.title,
+      category: task.category,
+      due_date: new Date(Date.parse(createdAt) + (index + 2) * 86_400_000).toISOString().slice(0, 10),
+      assignee_user_id: assignee,
+      case_id: caseNumber ? seedId(`case:${caseNumber}`) : null,
+      done: task.done ?? false,
+      created_by: assignee,
+      created_at: createdAt,
+    };
+  });
+
   return {
     accounts,
     contacts,
@@ -1259,5 +1287,6 @@ Please send us your estimate, and always state case number ${caseNumber} in the 
     auditLog,
     communications,
     caseCommunications,
+    tasks,
   };
 }

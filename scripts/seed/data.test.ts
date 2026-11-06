@@ -165,6 +165,13 @@ describe("seed communications", () => {
   });
 });
 
+describe("seed tasks", () => {
+  it("has open tasks in every dashboard category (UC-02)", () => {
+    const open = new Set(seed.tasks.filter((task) => !task.done).map((task) => task.category));
+    expect([...open].sort()).toEqual(["broker", "fleet_insurer", "my_tasks", "repairer_dealer", "supplier"]);
+  });
+});
+
 describe("seed master data", () => {
   it("gives every client a unique client code, and only clients", () => {
     const codes = seed.accounts.map((account) => account.client_code).filter(Boolean);

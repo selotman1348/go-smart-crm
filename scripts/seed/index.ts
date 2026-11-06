@@ -118,6 +118,7 @@ async function main() {
   await insertMissing("audit_log", seed.auditLog);
   await insertMissing("communication", seed.communications);
   await insertMissing("case_communication", seed.caseCommunications, "case_id,communication_id");
+  await insertMissing("task", seed.tasks);
 }
 
 main().catch((error: unknown) => {

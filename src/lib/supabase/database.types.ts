@@ -2770,6 +2770,29 @@ export type Database = {
       }
     }
     Functions: {
+      agent_create_outbound_draft: {
+        Args: {
+          p_api_client_id: string
+          p_body: string
+          p_case_id: string
+          p_cc: string[]
+          p_merge_data: Json
+          p_subject: string
+          p_template_id: string
+          p_to: string[]
+        }
+        Returns: string
+      }
+      agent_propose_intake: {
+        Args: {
+          p_api_client_id: string
+          p_email_id: string
+          p_field_confidence: Json
+          p_missing_fields: string[]
+          p_proposed_fields: Json
+        }
+        Returns: string
+      }
       change_case_status: {
         Args: {
           p_automatic?: boolean
@@ -2808,6 +2831,16 @@ export type Database = {
         Args: { p_case_id: string; p_communication: Json }
         Returns: string
       }
+      phase2_hook_counts: {
+        Args: never
+        Returns: {
+          active_api_clients: number
+          completeness_rules: number
+          intake_drafts: number
+          outbound_drafts: number
+          undelivered_events: number
+        }[]
+      }
       receive_inbound_email: {
         Args: {
           p_attachments: Json
@@ -2841,6 +2874,15 @@ export type Database = {
           p_total_loss_previous_damage_deduction: number
           p_total_loss_vehicle_value: number
           p_total_loss_wreck_value: number
+        }
+        Returns: undefined
+      }
+      record_sales_invoice: {
+        Args: {
+          p_amount_excl_vat: number
+          p_case_id: string
+          p_expected_status: Database["public"]["Enums"]["case_status"]
+          p_invoice_number: string
         }
         Returns: undefined
       }

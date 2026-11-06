@@ -213,3 +213,30 @@ describe("quote history", () => {
     expect(formatValue("case", "deductible", "250", names)).toBe("€250.00");
   });
 });
+
+describe("invoicing and agent history", () => {
+  it("names invoices and drafts created by an API client", () => {
+    const entries = formatHistory(
+      [
+        row({ entity: "invoice", newValue: JSON.stringify({ direction: "sales", invoice_number: "SI-2026-0042" }), at: "2026-11-05T12:00:00Z" }),
+        row({ entity: "invoice", newValue: JSON.stringify({ direction: "purchase", received: true }), at: "2026-11-05T11:00:00Z" }),
+        row({ entity: "invoice", entityId: "inv-1", field: "amount_excl_vat", oldValue: "900", newValue: "870", at: "2026-11-05T10:30:00Z" }),
+        row({
+          entity: "outbound_message",
+          newValue: JSON.stringify({ subject: "Missing data" }),
+          actorType: "agent",
+          actorId: null,
+          at: "2026-11-05T10:00:00Z",
+        }),
+      ],
+      names,
+    );
+    expect(entries.map((entry) => [entry.summary, entry.actor])).toEqual([
+      ["Recorded the sales invoice SI-2026-0042", "Alex Morgan"],
+      ["Recorded the repairer invoice", "Alex Morgan"],
+      ["Updated the invoice", "Alex Morgan"],
+      ["Drafted an e-mail: Missing data", "API client"],
+    ]);
+    expect(entries[2].changes).toEqual([{ label: "Amount excl. VAT", from: "€900.00", to: "€870.00" }]);
+  });
+});

@@ -16,13 +16,15 @@ export function isCaseStatus(value: unknown): value is CaseStatus {
 
 /**
  * Status engine (design.md section 2). Users may set any status manually;
- * the application changes it automatically only for BR-03. Guards for manual
- * changes (BR-08 "Invoicing – OK", iteration 5) belong here.
+ * the application changes it automatically only for BR-03. "Invoicing – OK"
+ * needs a complete case (BR-08): `invoicingOkError` is the completeness
+ * check's verdict (null when complete).
  */
 export function planStatusChange(request: {
   current: CaseStatus;
   target: unknown;
   automatic?: boolean;
+  invoicingOkError?: string | null;
 }): StatusChangePlan {
   const automatic = request.automatic ?? false;
   if (!isCaseStatus(request.target)) {
@@ -33,6 +35,9 @@ export function planStatusChange(request: {
   }
   if (automatic && !AUTOMATIC_STATUS_TARGETS.includes(request.target)) {
     return { ok: false, error: "Only quote validation may change the status automatically (BR-03)." };
+  }
+  if (request.target === "invoicing_ok" && request.invoicingOkError) {
+    return { ok: false, error: request.invoicingOkError };
   }
   return { ok: true, from: request.current, to: request.target, automatic };
 }

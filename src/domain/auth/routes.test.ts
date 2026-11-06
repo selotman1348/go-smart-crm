@@ -85,6 +85,8 @@ describe("resolveAuthRedirect", () => {
 
   it("lets the inbound e-mail webhook through without a session", () => {
     expect(resolveAuthRedirect({ pathname: "/api/inbound-email", search: "", isSignedIn: false })).toBeNull();
+    expect(resolveAuthRedirect({ pathname: "/api/events/dispatch", search: "", isSignedIn: false })).toBeNull();
+    expect(resolveAuthRedirect({ pathname: "/api/v1/cases", search: "", isSignedIn: false })).toBeNull();
     expect(resolveAuthRedirect({ pathname: "/api/inbound-email/other", search: "", isSignedIn: false })).toBe(
       "/login?next=%2Fapi%2Finbound-email%2Fother",
     );

@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 
 import { getAssessmentService } from "@/domain/assessment";
 import type { DecisionResult } from "@/domain/assessment/assessment-service";
+import { getInvoiceService } from "@/domain/invoicing";
 
 import { readForm, type FormState, type FormValues } from "../../../form-state";
 import { requireUser } from "../../../session";
@@ -53,4 +54,28 @@ export async function recordNoRepairAction(
   const values = readForm(formData);
   const assessments = await getAssessmentService();
   return afterSave(await assessments.recordNoRepair(caseId, values), values, previous);
+}
+
+/** UC-29: the repairer invoice. */
+export async function saveRepairerInvoiceAction(
+  caseId: string,
+  previous: AssessmentFormState,
+  formData: FormData,
+): Promise<AssessmentFormState> {
+  await requireUser();
+  const values = readForm(formData);
+  const invoices = await getInvoiceService();
+  return afterSave(await invoices.saveRepairerInvoice(caseId, values), values, previous);
+}
+
+/** UC-31: records the sales invoice number and closes the case. */
+export async function recordSalesInvoiceAction(
+  caseId: string,
+  previous: AssessmentFormState,
+  formData: FormData,
+): Promise<AssessmentFormState> {
+  await requireUser();
+  const values = readForm(formData);
+  const invoices = await getInvoiceService();
+  return afterSave(await invoices.recordSalesInvoice(caseId, values), values, previous);
 }

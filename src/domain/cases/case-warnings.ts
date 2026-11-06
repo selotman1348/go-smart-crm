@@ -12,9 +12,9 @@ export type CaseTab =
 export type CaseWarning = { tab: CaseTab; message: string };
 
 /**
- * Warning markers for tabs with missing required information (BR-13).
- * Version 1 so far checks BR-11; the completeness rules engine follows in
- * iteration 5.
+ * Warning markers for tabs with missing required information (BR-13): BR-11
+ * here; the invoicing requirements (BR-08) come from the completeness rules
+ * (src/domain/invoicing/completeness.ts) and are added by the case service.
  */
 export function caseWarnings(input: {
   clientRequiresVdaPo: boolean;

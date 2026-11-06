@@ -9,8 +9,9 @@ import type { DbClient } from "./server";
 
 /**
  * Service-role client for callers without a user session: the inbound
- * e-mail webhook. It bypasses row-level security, so only src/domain/intake
- * may use it, after the webhook's shared secret has been checked.
+ * e-mail webhook, the external API and the event dispatcher. It bypasses
+ * row-level security, so only src/domain/intake, src/domain/api and
+ * src/domain/events use it, after checking the caller's secret or API key.
  */
 export function createServiceClient(): DbClient {
   const secretKey = process.env.SUPABASE_SECRET_KEY;

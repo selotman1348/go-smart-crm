@@ -1,5 +1,7 @@
 import "server-only";
 
+import { createInvoiceRepository } from "@/domain/invoicing/invoice-repository";
+import { createInvoiceService } from "@/domain/invoicing/invoice-service";
 import { createClient } from "@/lib/supabase/server";
 
 import { createCaseRepository } from "./case-repository";
@@ -12,5 +14,7 @@ export { type CaseTab, type CaseWarning, warningsForTab } from "./case-warnings"
 
 /** Case service bound to the current request's session (row-level security applies). */
 export async function getCaseService(): Promise<CaseService> {
-  return createCaseService(createCaseRepository(await createClient()));
+  const db = await createClient();
+  const invoices = createInvoiceService(createInvoiceRepository(db));
+  return createCaseService(createCaseRepository(db), undefined, (caseId) => invoices.completeness(caseId, "invoicing"));
 }

@@ -6,9 +6,11 @@ const PUBLIC_PATHS = [LOGIN_PATH];
 
 /**
  * Called by external services, which check their own credentials (the
- * inbound e-mail webhook's shared secret); never redirected.
+ * inbound e-mail webhook's shared secret, Vercel Cron's secret, API keys);
+ * never redirected.
  */
-const WEBHOOK_PATHS = ["/api/inbound-email"];
+const WEBHOOK_PATHS = ["/api/inbound-email", "/api/events/dispatch"];
+const API_PREFIX = "/api/v1/";
 
 const ORIGIN_PLACEHOLDER = "http://internal.invalid";
 
@@ -53,7 +55,7 @@ export function resolveAuthRedirect(request: {
 }): string | null {
   const { pathname, search, isSignedIn } = request;
 
-  if (WEBHOOK_PATHS.includes(pathname)) {
+  if (WEBHOOK_PATHS.includes(pathname) || pathname.startsWith(API_PREFIX)) {
     return null;
   }
 

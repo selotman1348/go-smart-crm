@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "ci": "npm run lint && npm run typecheck && npm run test && npm run build",
     "db:seed": "tsx scripts/seed/index.ts",
+    "api:key": "tsx scripts/api-key.ts",
     "db:push": "tsx scripts/supabase-remote.ts db push --yes",
     "db:push:dry": "tsx scripts/supabase-remote.ts db push --dry-run",
     "db:types": "tsx scripts/supabase-remote.ts --out src/lib/supabase/database.types.ts gen types --lang=typescript --schema=public",

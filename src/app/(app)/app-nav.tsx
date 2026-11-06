@@ -5,14 +5,19 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
-// design.md section 4. Items are added as their pages are built (D-012).
-const NAV_SECTIONS = [
+// design.md section 4. Leads, Notes, Surveys and Repairs are placeholders in
+// version 1. `exact`: not active on the pages below it.
+const NAV_SECTIONS: { title: string; items: { href: string; label: string; exact?: boolean }[] }[] = [
   {
     title: "CRM",
     items: [
       { href: "/dashboard", label: "Dashboard" },
       { href: "/accounts", label: "Accounts" },
       { href: "/contacts", label: "Contacts" },
+      { href: "/tasks", label: "Tasks" },
+      { href: "/leads", label: "Leads" },
+      { href: "/notes", label: "Notes" },
+      { href: "/surveys", label: "Surveys" },
     ],
   },
   {
@@ -20,6 +25,14 @@ const NAV_SECTIONS = [
     items: [
       { href: "/cases", label: "Cases" },
       { href: "/inbox", label: "Inbox" },
+    ],
+  },
+  {
+    title: "Repairs",
+    items: [
+      { href: "/repairs", label: "Dashboard", exact: true },
+      { href: "/repairs/network", label: "Network" },
+      { href: "/repairs/cases", label: "Cases" },
     ],
   },
   {
@@ -40,7 +53,7 @@ export function AppNavLinks({ pathname }: { pathname: string | null }) {
             {section.items.map((item) => {
               const active =
                 pathname !== null &&
-                (pathname === item.href || pathname.startsWith(`${item.href}/`));
+                (pathname === item.href || (!item.exact && pathname.startsWith(`${item.href}/`)));
               return (
                 <li key={item.href}>
                   <Link

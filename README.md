@@ -62,6 +62,7 @@ Requirements: Node.js 24 or later, and a Supabase project.
 | `npm run db:push` / `db:push:dry` | Apply new migrations to the hosted project, or only list them |
 | `npm run db:types` | Regenerate `src/lib/supabase/database.types.ts` from the hosted schema. Commit the result. CI typechecks the app against types generated from a fresh database |
 | `npm run db:seed` | Load the seed data. Safe to repeat: existing rows are never overwritten |
+| `npm run api:key -- "<name>" cases:read,drafts:write` | Create an API client for an agent and print its key once (`docs/api.md`) |
 | `npm run db:start` / `db:stop` / `db:reset` | Optional local Supabase stack (needs Docker). CI uses it to test on a fresh database |
 
 ### Changing the schema
@@ -86,6 +87,8 @@ All seed data is fictitious (`scripts/seed/data.ts`). It uses Belgian formats wi
 ## What works so far
 
 - **Login** (UC-01): e-mail address and password.
+- **Dashboard** (UC-02): open tasks per category, new cases per month with the average and the trend, and what the phase-2 hook tables hold.
+- **Tasks** (UC-03): all tasks or one category, new tasks (optionally for a case), mark as done.
 - **Accounts and Contacts** (UC-38): browse, search, create and edit.
 - **Cases:**
   - list with search, filters and client tiles (UC-04 to UC-06)
@@ -96,12 +99,14 @@ All seed data is fictitious (`scripts/seed/data.ts`). It uses Belgian formats wi
     - **Parties**
     - **Damage:** details and damaged parts
     - **Quote:** pre- and post-calculation with categories, sub-types, live subtotals and total; mark as sent; copy pre to post; the Validate dialog, which changes the status automatically (UC-18 to UC-22, BR-03 to BR-06)
-    - **Assessment:** expert and expert report, the validation summary, total loss and no repair, both closing the case (UC-23 to UC-27, BR-07); "Send assessment order"
+    - **Assessment:** expert and expert report, the validation summary, total loss and no repair, both closing the case (UC-23 to UC-27, BR-07); "Send assessment order"; invoicing: the repairer invoice with the expected amount after the agreed discount (BR-09), the completeness check (BR-08) and the sales invoice number, which closes the case (UC-29 to UC-31)
     - **Communications:** the log with filters (e-mails in/out, phone calls, other) and a processed flag; e-mails from templates in English or Dutch with merge fields, To/Cc/Bcc and attachments, including the generated repair-order PDF; logging phone calls (UC-13 to UC-15, UC-33, UC-35)
     - **Documents**
     - **History**
-  - a status dropdown, handled by the status engine
+  - a status dropdown, handled by the status engine; "Invoicing – OK" only when the case is complete (BR-08), and tabs with missing information carry a marker (BR-13)
 - **Inbox** (UC-34): e-mails sent or forwarded to the intake address arrive through the webhook `/api/inbound-email`. An e-mail whose subject contains a case number is logged on that case automatically, with its attachments (BR-10); the others wait in the Inbox, with "Create case from e-mail" and "Link to case". "Upload .eml" feeds a saved e-mail into the same pipeline; `docs/demo/` has two sample e-mails for the demo script.
+- **Agent API and hooks** (`docs/api.md`): scoped API keys (`npm run api:key`) that read cases and create drafts only; event webhooks through `/api/events/dispatch`.
+- **Placeholder pages:** Leads, Notes, Surveys and Repairs (dashboard, network, cases), as version 1 leaves them unspecified.
 - **Documents** (UC-36): case documents and a central page for shared documents.
   - Files go straight from the browser to the private Storage bucket `documents`, which the migrations create.
   - Limits: 20 MB per file; PDF, images, Word, Excel, `.eml` and text.
@@ -115,8 +120,8 @@ src/
   app/            Routes and UI. No database access here (ESLint enforces it)
   components/     Shared UI; components/ui/ holds the shadcn/ui components
   domain/         Business rules, repositories and services (auth, accounts, contacts, cases,
-                  vehicles, parties, damage, quotes, assessment, communications, intake,
-                  documents, history, lookups, users)
+                  vehicles, parties, damage, quotes, assessment, invoicing, communications,
+                  intake, tasks, dashboard, api, events, documents, history, lookups, users)
   lib/            Supabase client factories, generated database types, environment settings
   proxy.ts        Refreshes the session and redirects signed-out users
 supabase/         Supabase CLI config and migrations

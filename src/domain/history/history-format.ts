@@ -68,6 +68,8 @@ const ENTITY_LABELS: Record<string, string> = {
   quote_line: "quote line",
   assessment: "assessment",
   invoice: "invoice",
+  outbound_message: "e-mail draft",
+  intake_draft: "intake draft",
 };
 
 const FIELD_LABELS: Record<string, Record<string, string>> = {
@@ -161,6 +163,13 @@ const FIELD_LABELS: Record<string, Record<string, string>> = {
     validated_at: "Validated at",
     validated_by: "Validated by",
   },
+  invoice: {
+    received: "Invoice received",
+    received_date: "Received on",
+    invoice_number: "Invoice number",
+    amount_excl_vat: "Amount excl. VAT",
+    document_id: "Invoice document",
+  },
 };
 
 /** Amount fields, shown in euros. */
@@ -177,6 +186,7 @@ const MONEY_FIELDS = new Set([
   "total_loss_accessories",
   "total_loss_wreck_value",
   "total_loss_damage_amount",
+  "amount_excl_vat",
 ]);
 
 const ACCOUNT_FIELDS = new Set([
@@ -326,6 +336,14 @@ function recordSummary(row: AuditRow, names: NameLookups): string {
       return added ? `Added vehicle ${String(record.licence_plate ?? "")}`.trim() : "Removed the vehicle";
     case "assessment":
       return added ? "Recorded the assessment" : "Removed the assessment";
+    case "invoice":
+      if (record.direction === "sales") {
+        return added ? `Recorded the sales invoice ${String(record.invoice_number ?? "")}`.trim() : "Removed the sales invoice";
+      }
+      return added ? "Recorded the repairer invoice" : "Removed the repairer invoice";
+    case "outbound_message":
+      // Drafts are audited only when an API client creates them (plan.md section 3).
+      return `Drafted an e-mail: ${String(record.subject ?? "")}`;
     default:
       return `${added ? "Added" : "Removed"} ${ENTITY_LABELS[row.entity] ?? row.entity}`;
   }

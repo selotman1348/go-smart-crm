@@ -28,7 +28,10 @@ export async function fillLogin(page: Page, password = E2E_PASSWORD) {
  * fields by role, which skips hidden elements.)
  */
 export async function openCaseTab(page: Page, name: string) {
-  const tab = page.getByRole("navigation", { name: "Case sections" }).getByRole("link", { name, exact: true });
+  // A tab with missing information carries a warning marker (BR-13).
+  const tab = page
+    .getByRole("navigation", { name: "Case sections" })
+    .getByRole("link", { name: new RegExp(`^${name}( \\(missing information\\))?$`) });
   await tab.click();
   await expect(tab).toHaveAttribute("aria-current", "page");
 }

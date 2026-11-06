@@ -7,6 +7,8 @@ import type { CaseListQuery } from "./case-list-query";
 import { nextCaseNumber } from "./case-number";
 import type { CaseRepository } from "./case-repository";
 import { caseWarnings } from "./case-warnings";
+import { INVOICING_STATUSES, invoicingOkError, type CompletenessItem } from "@/domain/invoicing/completeness";
+
 import { planStatusChange } from "./status-engine";
 
 export const CASE_NUMBER_ATTEMPTS = 5;
@@ -39,7 +41,14 @@ function explainHeaderError(error: RepositoryError | "not_found"): SaveResult<Ca
   return { ok: false, formError: CASE_SAVE_FAILED_MESSAGE };
 }
 
-export function createCaseService(repository: CaseRepository, now: () => Date = () => new Date()) {
+/** The invoicing completeness check (BR-08), from src/domain/invoicing. */
+export type InvoicingCompleteness = (caseId: string) => Promise<CompletenessItem[]>;
+
+export function createCaseService(
+  repository: CaseRepository,
+  now: () => Date = () => new Date(),
+  invoicingCompleteness: InvoicingCompleteness = async () => [],
+) {
   return {
     list(query: CaseListQuery) {
       return repository.list(query);
@@ -53,7 +62,7 @@ export function createCaseService(repository: CaseRepository, now: () => Date = 
       return repository.listTags();
     },
 
-    /** The case with its BR-11 warning markers, or null. */
+    /** The case with its warning markers (BR-11, and BR-08 while invoicing; BR-13), or null. */
     async get(id: string) {
       if (!isUuid(id)) {
         return null;
@@ -62,13 +71,19 @@ export function createCaseService(repository: CaseRepository, now: () => Date = 
       if (!detail) {
         return null;
       }
+      const missing = INVOICING_STATUSES.includes(detail.status)
+        ? (await invoicingCompleteness(id)).filter((item) => !item.met)
+        : [];
       return {
         ...detail,
-        warnings: caseWarnings({
-          clientRequiresVdaPo: detail.client.requiresVdaPo,
-          vdaNumber: detail.header.vdaNumber,
-          poNumber: detail.header.poNumber,
-        }),
+        warnings: [
+          ...caseWarnings({
+            clientRequiresVdaPo: detail.client.requiresVdaPo,
+            vdaNumber: detail.header.vdaNumber,
+            poNumber: detail.header.poNumber,
+          }),
+          ...missing.map((item) => ({ tab: item.tab, message: `Missing for invoicing (BR-08): ${item.label}.` })),
+        ],
       };
     },
 
@@ -144,7 +159,12 @@ export function createCaseService(repository: CaseRepository, now: () => Date = 
       if (!current) {
         return { ok: false, error: CASE_NOT_FOUND_MESSAGE };
       }
-      const plan = planStatusChange({ current, target, automatic: options.automatic });
+      const plan = planStatusChange({
+        current,
+        target,
+        automatic: options.automatic,
+        invoicingOkError: target === "invoicing_ok" ? invoicingOkError(await invoicingCompleteness(caseId)) : null,
+      });
       if (!plan.ok) {
         return plan;
       }
